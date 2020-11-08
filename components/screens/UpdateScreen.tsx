@@ -1,0 +1,184 @@
+import React, { useState, useRef, useEffect } from 'react';
+import {Animated, View, Text, StyleSheet, SafeAreaView, Platform, Dimensions, TextInput, Image} from 'react-native';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import * as ImagePicker from 'expo-image-picker';
+
+import VN_NAME from '../../config/vn_name';
+
+const {width, height} = Dimensions.get('window');
+
+const groups = ["n-l", "n-l", "n -l"]
+
+export default function UpdateScreen() {
+    const [name, setName] = useState<string>('');
+    const [explanation, setExplanation] = useState<string>('');
+    const [groupComp, setGroupComp] = useState<string>('');
+    const [showDropDown, setShowDropDown] = useState<boolean>(false);
+    const [image, setImage] = useState<string>('');
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+
+    const fadeIn = () => {
+        setShowDropDown(true);
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true
+        }).start();
+      };
+    
+      const fadeOut = () => {
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true
+        }).start();
+        setShowDropDown(false);
+      };
+    
+      const pickImage = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.All,
+          allowsEditing: true,
+          aspect: [4, 3],
+          quality: 1,
+        });
+    
+        if (!result.cancelled) {
+          setImage(result.uri);
+        }
+      };
+    
+    return (
+    <SafeAreaView>
+        <View>
+     <Text style={styles.title}>{VN_NAME.UPDATE_SCREEN}</Text>
+     <KeyboardAwareScrollView
+      contentContainerStyle={{height: height}}
+      resetScrollToCoords={{ x: 0, y: 0 }}
+      enableOnAndroid={true}
+      keyboardShouldPersistTaps="handled"
+      scrollEnabled={true}
+      enableAutomaticScroll={Platform.OS === "ios"}>
+        <View style={styles.container}>
+            <View style={styles.form}>
+                <Text style={styles.updateTitle}>{VN_NAME.UPDATE_NAME}</Text>
+                <TextInput 
+                    
+                    style={styles.updateInput}
+                    value={name}
+                    onChangeText={(text) => {
+                        setName(text);
+                    }}
+                />
+
+                <Text style={styles.updateTitle}>{VN_NAME.UPDATE_EXPLANATION}</Text>
+                <TextInput 
+                    style={styles.updateInput}
+                    value={explanation}
+                    onChangeText={(text) => {
+                        setExplanation(text);
+                    }}
+                />
+
+                <Text style={styles.updateTitle}>{VN_NAME.UPDATE_GROUP}</Text>
+                <TextInput 
+                    style={styles.updateInput}
+                    value={groupComp}
+                    onChangeText={(text) => {
+                        if (text !== '') {
+                            fadeIn();
+                        } else {
+                            fadeOut();
+                        }
+                        setGroupComp(text);
+                    }}
+                />
+                {showDropDown && <Animated.View
+                    style={{...styles.dropDown, opacity: fadeAnim}}
+                >
+                    <FlatList 
+                        data={groups}
+                        horizontal={true}
+                        keyExtractor={(item, index) => index.toString()}
+                        renderItem={({item, index}) => 
+                        <TouchableOpacity style={styles.drowDownOption}>
+                            <Text>{item}</Text>
+                        </TouchableOpacity>}
+                    />
+                </Animated.View>}
+                
+                <Text style={{...styles.updateTitle, marginTop: showDropDown ? -20 : 0}}>{VN_NAME.UPDATE_IMAGE}</Text>
+                <TouchableOpacity style={styles.chooseImage} onPress={() => {
+                   pickImage();
+                }}>
+                <Text style={{color: 'white'}}>{VN_NAME.CHOOSE_IMAGE}</Text>
+                </TouchableOpacity>
+                {image !== '' && <Image source={{uri: image}} style={styles.image}/>}
+
+            </View>
+        </View>
+        </KeyboardAwareScrollView>
+        </View>
+    </SafeAreaView>
+    )
+}
+
+const styles = StyleSheet.create({
+    container: {
+        paddingHorizontal: 10,
+        paddingBottom: 10,
+        marginHorizontal: 5
+    },
+    image: {
+        width: width * 0.88, 
+        height: height * 0.3,
+        borderRadius: 5,
+        marginTop: 10
+    },
+    chooseImage: {
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 5,
+        backgroundColor: 'black',
+        alignSelf: 'baseline',
+        marginTop: 10
+    },
+    drowDownOption: {
+        padding: 5,
+        paddingHorizontal: 10,
+        backgroundColor: 'white',
+        marginRight: 10,
+        borderRadius: 5
+    },
+    dropDown: {
+        backgroundColor: 'black',
+        zIndex: 1,
+        marginTop: -20,
+        borderRadius: 5,
+        height: 40,
+        padding: 5,
+    },
+    title: {
+        fontSize: width / 15,
+        textAlign: 'center',
+        marginTop: Platform.OS === 'ios' ? 10 : 40,
+    },
+    updateTitle: {
+        fontSize: width / 23,
+    },
+    updateInput: {
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        height: height / 25,
+        marginBottom: 20,
+        marginHorizontal: 5
+    },
+    form: {
+        marginTop: 20,
+        padding: 10,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        shadowOpacity: 0.2,
+        paddingVertical: 20
+    }
+})

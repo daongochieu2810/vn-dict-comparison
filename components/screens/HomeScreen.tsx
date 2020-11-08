@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {SafeAreaView, View, Text, StyleSheet, FlatList, TextInput, Modal, TouchableOpacity, Dimensions, Platform} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -10,8 +10,14 @@ import WordModal from '../cards/WordModal';
 const {width, height} = Dimensions.get('window');
 
 export default function HomeScreen() {
+    const [wordList, setWordList] = useState<Word[]>(words);
     const [keyWord, setKeyWord] = useState<string>('');
     const [chosenWord, setChosenWord] = useState<Word | undefined>(undefined);
+    
+    useEffect(() => {
+        setWordList(words.filter((item) => item.word.includes(keyWord)));    
+    }, [keyWord])
+
     return (
         <SafeAreaView>
             <View style={styles.container}>
@@ -32,7 +38,7 @@ export default function HomeScreen() {
                 </View>
                 <FlatList 
                     style={styles.wordList}
-                    data={words}
+                    data={wordList}
                     keyExtractor={(item, index) => item + " " + index.toString()}
                     renderItem={({item, index}) => 
                     <TouchableOpacity onPress={() => {
@@ -54,7 +60,7 @@ export default function HomeScreen() {
                     onPress={() => {
                         setChosenWord(undefined);
                     }}>
-                        <Text style={{color: 'red'}}>Close</Text>
+                        <Ionicons name='ios-close' size={40} color='red'/>
                     </TouchableOpacity>
                     <WordModal word={chosenWord}/>
                     </View>
@@ -85,12 +91,8 @@ const styles = StyleSheet.create({
     },
     closeModal: {
         paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderWidth: StyleSheet.hairlineWidth,
         alignSelf: 'baseline',
-        borderRadius: 5,
-        marginBottom: 10,
-        borderColor: 'red'
+        marginBottom: 10
     },
     title: {
         textAlign: 'center',

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "vn-dict-comparision",
-    "slug": "vn-dict-comparision",
+    "name": "vn-dict-comparison",
+    "slug": "vn-dict-comparison",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

@@ -1,26 +1,40 @@
 import React from 'react';
+import { StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 
+import VN_NAME from './config/vn_name';
 import HomeScreen from './components/screens/HomeScreen';
-import AccountScreen from './components/screens/AccountScreen';
+import ComparisonScreen from './components/screens/ComparisonScreen';
+import UpdateScreen from './components/screens/UpdateScreen';
+
+import globalStorage from "./backend/store";
+import { Provider } from 'react-redux';
+import { PersistGate } from "redux-persist/integration/react";
+
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function App() {
   return (
+    <Provider store={globalStorage.store}>
+      <PersistGate
+        persistor={globalStorage.persistor}
+        >
     <NavigationContainer>
       <Tab.Navigator
         screenOptions={({route}) => ({
           tabBarIcon: ({ focused, color, size }) => {
             let iconName = "";
-            if (route.name === 'Home') {
+            if (route.name === VN_NAME.COMPARISON_SCREEN) {
               iconName = 'ios-home'
-            } else if (route.name === 'Account') {
+            } else if (route.name === VN_NAME.DICTIONARY_SCREEN) {
               iconName = 'ios-list-box';
+            } else {
+              iconName = 'ios-add-circle'
             }
             return <Ionicons name={iconName} size={size} color={color} />;
           },
@@ -30,10 +44,13 @@ function App() {
           inactiveTintColor: 'gray',
         }}
       >
-        <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Account" component={AccountScreen} />
+        <Tab.Screen name={VN_NAME.DICTIONARY_SCREEN} component={HomeScreen} />
+        <Tab.Screen name={VN_NAME.COMPARISON_SCREEN} component={ComparisonScreen} />
+        <Tab.Screen name={VN_NAME.UPDATE_SCREEN} component={UpdateScreen}/>
       </Tab.Navigator>
     </NavigationContainer>
+    </PersistGate>
+    </Provider>
   );
 }
 
