@@ -10,6 +10,9 @@ const VN_NAME = {
     UPDATE_VIDEO: "Video",
     UPDATE_GROUP: "Nhóm so sánh",
     CHOOSE_IMAGE: "Chọn ảnh",
+    CHOOSE_AUDIO: "Chọn âm thanh",
+    CHOOSE_VIDEO: "Chọn video",
+    UPLOAD: "Hoàn thiện",
     ROOT_FOLDER: "vnDictComp/"
 }
 export default VN_NAME;

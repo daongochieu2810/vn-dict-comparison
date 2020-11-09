@@ -11,16 +11,6 @@ import {
   TextInput,
   Modal,
 } from "react-native";
-import { connect } from "react-redux";
-import { setDictionary } from "../../backend/actions/DictionaryAction";
-import {
-  Dictionary,
-  DictionaryState,
-  DictionaryActionTypes,
-} from "../../backend/types/DictionaryType";
-import { RootState } from "../../backend/reducers/RootReducer";
-import { AnyAction, Dispatch } from "redux";
-import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from "@expo/vector-icons";
 
 import VN_NAME from "../../config/vn_name";
@@ -30,23 +20,7 @@ import WordModal from "../cards/WordModal";
 
 const { height, width } = Dimensions.get("window");
 
-const mapDispatchToProps = (dispatch: Dispatch<DictionaryActionTypes>) => {
-  return {
-    reduxSetDictionary: (dictionaryState: DictionaryState) => {
-      dispatch(setDictionary(dictionaryState));
-    },
-  };
-};
-
-const mapStateToProps = (state: RootState) => {
-  return {
-    dictionaryReducer: state.dictionaryReducer,
-  };
-};
-type ComparisonScreenProps = ReturnType<typeof mapStateToProps> &
-  ReturnType<typeof mapDispatchToProps>;
-export default connect(mapStateToProps, mapDispatchToProps)(ComparisonScreen);
-function ComparisonScreen(props : ComparisonScreenProps) {
+export default function ComparisonScreen() {
   const [wordList, setWordList] = useState<Word[]>(words);
   const [keyWord, setKeyWord] = useState<string>();
   const [chosenWord, setChosenWord] = useState<Word | undefined>();
@@ -54,12 +28,7 @@ function ComparisonScreen(props : ComparisonScreenProps) {
   useEffect(() => {
     setWordList(words.filter((item) => item.word.includes(keyWord || "")));
   }, [keyWord]);
-
-  const pickDocument = async () => {
-    let result = await DocumentPicker.getDocumentAsync({});
-    console.log(result);
-  }
-
+  
   return (
     <SafeAreaView>
       <View style={styles.container}>
