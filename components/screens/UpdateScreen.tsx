@@ -9,6 +9,8 @@ import {
   Dimensions,
   TextInput,
   Image,
+  ScrollView,
+  StatusBar
 } from "react-native";
 import { FlatList, TouchableOpacity } from "react-native-gesture-handler";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -93,10 +95,9 @@ function UpdateScreen(props: UpdateScreenProps) {
 
   return (
     <SafeAreaView>
-      <View style={{paddingBottom: 50}}>
+      <ScrollView>
         <Text style={styles.title}>{VN_NAME.UPDATE_SCREEN}</Text>
         <KeyboardAwareScrollView
-          contentContainerStyle={{ height: height }}
           resetScrollToCoords={{ x: 0, y: 0 }}
           enableOnAndroid={true}
           keyboardShouldPersistTaps="handled"
@@ -215,7 +216,7 @@ function UpdateScreen(props: UpdateScreenProps) {
             </View>
           </View>
         </KeyboardAwareScrollView>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -258,7 +259,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: width / 15,
     textAlign: "center",
-    marginTop: Platform.OS === "ios" ? 10 : 40,
+    marginTop: 20,
   },
   updateTitle: {
     fontSize: width / 23,

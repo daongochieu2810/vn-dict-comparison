@@ -4,18 +4,20 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import {createSharedElementStackNavigator} from 'react-navigation-shared-element';
 
 import VN_NAME from './config/vn_name';
-import HomeScreen from './components/screens/HomeScreen';
+import HomeScreen, {HomeScreenStack} from './components/screens/HomeScreen';
 import ComparisonScreen from './components/screens/ComparisonScreen';
 import UpdateScreen from './components/screens/UpdateScreen';
+import WordScreen from './components/cards/WordScreen';
 
 import globalStorage from "./backend/store";
 import { Provider } from 'react-redux';
 import { PersistGate } from "redux-persist/integration/react";
 
 
-const Stack = createStackNavigator();
+const Stack = createSharedElementStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function App() {
@@ -24,6 +26,8 @@ function App() {
       <PersistGate
         persistor={globalStorage.persistor}
         >
+          <StatusBar />
+          <>
     <NavigationContainer>
       <Tab.Navigator
         screenOptions={({route}) => ({
@@ -44,11 +48,12 @@ function App() {
           inactiveTintColor: 'gray',
         }}
       >
-        <Tab.Screen name={VN_NAME.DICTIONARY_SCREEN} component={HomeScreen} />
+        <Tab.Screen name={VN_NAME.DICTIONARY_SCREEN} component={HomeScreenStack} />
         <Tab.Screen name={VN_NAME.COMPARISON_SCREEN} component={ComparisonScreen} />
         <Tab.Screen name={VN_NAME.UPDATE_SCREEN} component={UpdateScreen}/>
       </Tab.Navigator>
     </NavigationContainer>
+    </>
     </PersistGate>
     </Provider>
   );

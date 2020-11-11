@@ -16,7 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import VN_NAME from "../../config/vn_name";
 import words from "../../data/words";
 import { Word } from "../cards/WordCard";
-import WordModal from "../cards/WordModal";
+import WordScreen from "../cards/WordScreen";
 
 const { height, width } = Dimensions.get("window");
 
@@ -84,25 +84,6 @@ export default function ComparisonScreen() {
               </TouchableOpacity>
             )}
           />
-          <Modal
-            transparent={true}
-            visible={chosenWord ? true : false}
-            animationType="slide"
-          >
-            <SafeAreaView style={{ flex: 1, backgroundColor: "#00000080" }}>
-              <View style={styles.modal}>
-                <TouchableOpacity
-                  style={styles.closeModal}
-                  onPress={() => {
-                    setChosenWord(undefined);
-                  }}
-                >
-                  <Ionicons name="ios-close" size={40} color="red" />
-                </TouchableOpacity>
-                <WordModal word={chosenWord} />
-              </View>
-            </SafeAreaView>
-          </Modal>
         </View>
       </View>
     </SafeAreaView>
@@ -110,7 +91,7 @@ export default function ComparisonScreen() {
 }
 const styles = StyleSheet.create({
   container: {
-    marginTop: Platform.OS === "ios" ? 0 : 30,
+    marginTop: 10,
     padding: 10,
     alignItems: "center",
     height: height,
