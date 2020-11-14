@@ -15,7 +15,8 @@ import WordScreen from './components/cards/WordScreen';
 import globalStorage from "./backend/store";
 import { Provider } from 'react-redux';
 import { PersistGate } from "redux-persist/integration/react";
-
+import {enableScreens} from 'react-native-screens';
+enableScreens();
 
 const Stack = createSharedElementStackNavigator();
 const Tab = createBottomTabNavigator();

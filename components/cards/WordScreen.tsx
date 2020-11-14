@@ -6,43 +6,45 @@ import {
   Image,
   ScrollView,
   Dimensions,
+  SafeAreaView
 } from "react-native";
-import { SharedElement } from "react-navigation-shared-element";
+import { SharedElement} from "react-navigation-shared-element";
 import { Word } from "./WordCard";
 import { TouchableOpacity } from "react-native-gesture-handler";
-
+import { StackNavigationProp } from '@react-navigation/stack';
 const { width, height } = Dimensions.get("window");
+
 
 interface WordScreenProps {
   word: Word | undefined;
 }
-export default function WordScreen({ navigation, route }) {
-  const props = route.params.data;
+const WordScreen = ({ navigation, route }) => {
+  const {item} = route.params;
   return (
-    <ScrollView>
-      <SharedElement id={`${props.word}.image`}>
-        <Image
-          source={{ uri: props.image }}
-          resizeMode="cover"
-          style={styles.wordImage}
-        />
-      </SharedElement>
-      <SharedElement id={`${props.word}.name`}>
-        <Text style={styles.mainWord}>{props.word}</Text>
-      </SharedElement>
-     
-        <Text style={styles.explanation}>{props.explanation}</Text>
-     
-      <TouchableOpacity onPress={() => {
-          navigation.goBack();
-      }}>
-          <Text>Back</Text>
-      </TouchableOpacity>
-    </ScrollView>
+    <SafeAreaView style={styles.container}>
+  <ScrollView style={{marginVertical: 10}}>
+    <SharedElement id={`item.${item.word}.image`}>
+          <Image source={{uri : item.image}} style={styles.wordImage}/>
+    </SharedElement>
+     <SharedElement id={`item.${item.word}.name`}>
+          <Text style={styles.mainWord}>{item.word}</Text>
+    </SharedElement>
+      <Text style={styles.explanation}>{item.explanation}</Text>
+    <TouchableOpacity onPress={() => {
+        navigation.goBack();
+    }}>
+        <Text>Back</Text>
+    </TouchableOpacity>
+  </ScrollView>
+  </SafeAreaView>
   );
 }
 
+export default WordScreen;
 const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: 10
+  },
   mainWord: {
     fontWeight: "bold",
     fontSize: 18,

@@ -11,6 +11,7 @@ import {
   Dimensions,
   Platform,
 } from "react-native";
+import { NavigationProp } from '@react-navigation/native';
 import { Ionicons } from "@expo/vector-icons";
 import { createSharedElementStackNavigator } from "react-navigation-shared-element";
 import VN_NAME from "../../config/vn_name";
@@ -19,53 +20,79 @@ import WordCard, { Word } from "../cards/WordCard";
 import WordScreen from "../cards/WordScreen";
 
 const { width, height } = Dimensions.get("window");
-const Stack = createSharedElementStackNavigator();
+const SharedElementStack = createSharedElementStackNavigator();
 export function HomeScreenStack() {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="HomeScreen"
-        component={HomeScreen}
-        options={() => ({
-          headerShown: false,
-        })}
-      />
-      <Stack.Screen
-        name="WordScreen"
-        component={WordScreen}
-        options={(navigation) => ({
-          headerShown: false,
-        })}
-        sharedElementsConfig={(route) => {
-          const { data } = route.params;
-          if (data.word) {
-            return [
-              {
-                id: `${data.word}.image`,
-                animation: "move",
-                resize: "clip",
-                align: "center-top",
+
+     const iosTransitionSpec = {
+      animation: "spring",
+      config: {
+        stiffness: 1000,
+        damping: 500,
+        mass: 3,
+        overshootClamping: true,
+        restDisplacementThreshold: 10,
+        restSpeedThreshold: 10,
+      },
+    };
+    // ...
+      return (
+        <SharedElementStack.Navigator
+          mode="modal"
+          screenOptions={{
+            useNativeDriver: true,
+            gestureEnabled: false,
+            transitionSpec: {
+              open: iosTransitionSpec,
+              close: iosTransitionSpec,
+            },
+            cardStyleInterpolator: ({ current: { progress } }) => ({
+              cardStyle: {
+                opacity: progress,
               },
-              {
-                id: `${data.word}.name`,
-                animation: "fade",
-                resize: "clip",
-                align: "left-center",
-              },
-            ];
-          }
-        }}
-      />
-    </Stack.Navigator>
+            }),
+          }}
+          headerMode="none"
+        >
+          <SharedElementStack.Screen name="HomeScreen" component={HomeScreen} />
+          <SharedElementStack.Screen
+            name="WordScreen"
+            component={WordScreen}
+            sharedElementsConfig={(route, otherRoute, showing) => {
+              const { item } = route.params;
+              if (route.name === "WordScreen" && showing) {
+                // Open animation fades in image, title and description
+                return [
+                  {
+                    id: `item.${item.word}.image`,
+                    animation: 'move'
+                  },
+                  {
+                    id: `item.${item.word}.name`,
+                    animation: "fade",
+                    resize: "clip",
+                    align: "left-top",
+                  },
+                  {
+                    id: `item.${item.word}.explanation`,
+                    animation: "fade",
+                    resize: "clip",
+                    align: "left-top",
+                  },
+                ];
+              } 
+            }}
+          />
+        </SharedElementStack.Navigator>
   );
 }
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen(props) {
+  const navigation : NavigationProp<any> = props.navigation;
   const [wordList, setWordList] = useState<Word[]>(words);
   const [keyWord, setKeyWord] = useState<string>("");
   const [chosenWord, setChosenWord] = useState<Word | undefined>(undefined);
 
   useEffect(() => {
-    setWordList(words.filter((item) => item.word.includes(keyWord)));
+    setWordList(words.filter((item) => item.word.toLowerCase().includes(keyWord.toLowerCase())));
   }, [keyWord]);
 
   return (
@@ -86,12 +113,12 @@ export default function HomeScreen({ navigation }) {
         </View>
         <FlatList
           style={styles.wordList}
-          keyboardShouldPersistTaps={"handled"}
+          keyboardShouldPersistTaps={"always"}
           data={wordList}
           keyExtractor={(item, index) => item + " " + index.toString()}
           renderItem={({ item, index }) => (
             <TouchableOpacity
-              onPress={() => navigation.push("WordScreen", { data: item })}
+              onPress={() => navigation.push("WordScreen", { item })}
             >
               <WordCard word={item} />
             </TouchableOpacity>

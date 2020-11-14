@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, View, Text, Dimensions, Image } from "react-native";
 import { SharedElement } from "react-navigation-shared-element";
 
+
 const { width, height } = Dimensions.get("window");
 
 export interface Word {
@@ -18,10 +19,11 @@ export default function WordCard(props: WordCardProps) {
   return (
     <View style={styles.container}>
       <View style={{ flex: 1 }}>
-        <SharedElement id={`${props.word.word}.name`}>
+      <SharedElement id={`item.${props.word.word}.name`}>
           <Text style={styles.mainWord}>{props.word.word}</Text>
-        </SharedElement>
-      
+    </SharedElement>
+    
+            
           <Text
             style={styles.explanation}
             numberOfLines={Math.floor(height / 100) - 1}
@@ -30,13 +32,9 @@ export default function WordCard(props: WordCardProps) {
           </Text>
         
       </View>
-      <SharedElement id={`${props.word.word}.image`}>
-        <Image
-          source={{ uri: props.word.image }}
-          resizeMode="cover"
-          style={styles.wordImage}
-        />
-      </SharedElement>
+     <SharedElement id={`item.${props.word.word}.name`}>
+          <Image source={{uri : props.word.image}} style={styles.wordImage} />
+    </SharedElement>
     </View>
   );
 }
