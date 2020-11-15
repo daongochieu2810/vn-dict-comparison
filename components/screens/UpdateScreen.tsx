@@ -10,8 +10,9 @@ import {
   TextInput,
   Image,
   ScrollView,
-  StatusBar
+  StatusBar,
 } from "react-native";
+import { Video } from "expo-av";
 import { FlatList, TouchableOpacity } from "react-native-gesture-handler";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import * as ImagePicker from "expo-image-picker";
@@ -53,6 +54,8 @@ function UpdateScreen(props: UpdateScreenProps) {
   const [groupComp, setGroupComp] = useState<string>("");
   const [showDropDown, setShowDropDown] = useState<boolean>(false);
   const [image, setImage] = useState<string>("");
+  const [video, setVideo] = useState<string>("");
+  const [audio, setAudio] = useState<string>("");
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const fadeIn = () => {
@@ -90,6 +93,13 @@ function UpdateScreen(props: UpdateScreenProps) {
       type: type,
       copyToCacheDirectory: false,
     });
+    if (!result.cancelled) {
+      if (type === "audio/*") {
+        setAudio(result.uri);
+      } else if (type === "video/*") {
+        setVideo(result.uri);
+      }
+    }
     console.log(result);
   };
 
@@ -207,7 +217,32 @@ function UpdateScreen(props: UpdateScreenProps) {
               >
                 <Text style={{ color: "white" }}>{VN_NAME.CHOOSE_VIDEO}</Text>
               </TouchableOpacity>
-
+              {video !== "" && (
+                <View
+                  style={{
+                    marginTop: 10,
+                    alignItems: "center",
+                  }}
+                >
+                  <Video
+                    source={{
+                      uri: video,
+                    }}
+                    rate={1.0}
+                    volume={1.0}
+                    isMuted={false}
+                    resizeMode="cover"
+                    shouldPlay
+                    useNativeControls={true}
+                    isLooping
+                    style={{
+                      width: width * 0.85,
+                      height: height / 3,
+                      borderRadius: 10,
+                    }}
+                  />
+                </View>
+              )}
               <TouchableOpacity style={styles.submitButton}>
                 <Text style={{ color: "white", textAlign: "center" }}>
                   {VN_NAME.UPLOAD}
@@ -225,7 +260,7 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 10,
     paddingBottom: 10,
-    marginHorizontal: 5
+    marginHorizontal: 5,
   },
   image: {
     width: width * 0.88,

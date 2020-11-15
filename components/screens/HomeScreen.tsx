@@ -11,7 +11,7 @@ import {
   Dimensions,
   Platform,
 } from "react-native";
-import { NavigationProp } from '@react-navigation/native';
+import { NavigationProp } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { createSharedElementStackNavigator } from "react-navigation-shared-element";
 import VN_NAME from "../../config/vn_name";
@@ -22,77 +22,79 @@ import WordScreen from "../cards/WordScreen";
 const { width, height } = Dimensions.get("window");
 const SharedElementStack = createSharedElementStackNavigator();
 export function HomeScreenStack() {
-
-     const iosTransitionSpec = {
-      animation: "spring",
-      config: {
-        stiffness: 1000,
-        damping: 500,
-        mass: 3,
-        overshootClamping: true,
-        restDisplacementThreshold: 10,
-        restSpeedThreshold: 10,
-      },
-    };
-    // ...
-      return (
-        <SharedElementStack.Navigator
-          mode="modal"
-          screenOptions={{
-            useNativeDriver: true,
-            gestureEnabled: false,
-            transitionSpec: {
-              open: iosTransitionSpec,
-              close: iosTransitionSpec,
-            },
-            cardStyleInterpolator: ({ current: { progress } }) => ({
-              cardStyle: {
-                opacity: progress,
+  const iosTransitionSpec = {
+    animation: "spring",
+    config: {
+      stiffness: 1000,
+      damping: 500,
+      mass: 3,
+      overshootClamping: true,
+      restDisplacementThreshold: 10,
+      restSpeedThreshold: 10,
+    },
+  };
+  // ...
+  return (
+    <SharedElementStack.Navigator
+      mode="modal"
+      screenOptions={{
+        useNativeDriver: true,
+        gestureEnabled: false,
+        transitionSpec: {
+          open: iosTransitionSpec,
+          close: iosTransitionSpec,
+        },
+        cardStyleInterpolator: ({ current: { progress } }) => ({
+          cardStyle: {
+            opacity: progress,
+          },
+        }),
+      }}
+      headerMode="none"
+    >
+      <SharedElementStack.Screen name="HomeScreen" component={HomeScreen} />
+      <SharedElementStack.Screen
+        name="WordScreen"
+        component={WordScreen}
+        sharedElementsConfig={(route, otherRoute, showing) => {
+          const { item } = route.params;
+          if (route.name === "WordScreen" && showing) {
+            return [
+              {
+                id: `item.${item.word}.image`,
+                animation: "move",
               },
-            }),
-          }}
-          headerMode="none"
-        >
-          <SharedElementStack.Screen name="HomeScreen" component={HomeScreen} />
-          <SharedElementStack.Screen
-            name="WordScreen"
-            component={WordScreen}
-            sharedElementsConfig={(route, otherRoute, showing) => {
-              const { item } = route.params;
-              if (route.name === "WordScreen" && showing) {
-                // Open animation fades in image, title and description
-                return [
-                  {
-                    id: `item.${item.word}.image`,
-                    animation: 'move'
-                  },
-                  {
-                    id: `item.${item.word}.name`,
-                    animation: "fade",
-                    resize: "clip",
-                    align: "left-top",
-                  },
-                  {
-                    id: `item.${item.word}.explanation`,
-                    animation: "fade",
-                    resize: "clip",
-                    align: "left-top",
-                  },
-                ];
-              } 
-            }}
-          />
-        </SharedElementStack.Navigator>
+              {
+                id: `item.${item.word}.name`,
+                animation: "fade",
+                resize: "clip",
+                align: "left-top",
+              },
+              {
+                id: `item.${item.word}.explanation`,
+                animation: "fade",
+                resize: "clip",
+                align: "left-top",
+              },
+            ];
+          }
+        }}
+      />
+    </SharedElementStack.Navigator>
   );
 }
 export default function HomeScreen(props) {
-  const navigation : NavigationProp<any> = props.navigation;
+  const navigation: NavigationProp<any> = props.navigation;
   const [wordList, setWordList] = useState<Word[]>(words);
   const [keyWord, setKeyWord] = useState<string>("");
   const [chosenWord, setChosenWord] = useState<Word | undefined>(undefined);
 
   useEffect(() => {
-    setWordList(words.filter((item) => item.word.toLowerCase().includes(keyWord.toLowerCase())));
+    setWordList(
+      words.filter((item) =>
+        item.word.toLowerCase().includes(keyWord.toLowerCase())
+      )
+    );
   }, [keyWord]);
 
   return (
@@ -158,6 +160,7 @@ const styles = StyleSheet.create({
   },
   wordList: {
     marginVertical: 10,
+    marginBottom: 150,
   },
   searchArea: {
     marginTop: 10,
