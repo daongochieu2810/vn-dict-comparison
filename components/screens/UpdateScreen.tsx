@@ -26,6 +26,8 @@ import {
 import { RootState } from "../../backend/reducers/RootReducer";
 import { AnyAction, Dispatch } from "redux";
 import * as DocumentPicker from "expo-document-picker";
+import AudioPlayer from "../media/AudioPlayer";
+import firebase from "../../backend/backend";
 import VN_NAME from "../../config/vn_name";
 
 const { width, height } = Dimensions.get("window");
@@ -76,6 +78,35 @@ function UpdateScreen(props: UpdateScreenProps) {
     setShowDropDown(false);
   };
 
+  const submit = async () => {
+    // try {
+    const blob: Blob = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = function () {
+        resolve(xhr.response);
+      };
+      xhr.onerror = function (e) {
+        console.log(e);
+        reject(new TypeError("Network request failed"));
+      };
+      xhr.responseType = "blob";
+      xhr.open("GET", video, true);
+      xhr.send(null);
+    });
+    //console.log(blob.type)
+
+    const ref = firebase.storage.ref().child("files/hoho.mp4");
+    //console.log(ref)
+    const snapshot = await ref.put(blob); //.then((v) => console.log(v));
+    console.log(snapshot);
+    // We're done with the blob, close and release it
+    blob.close();
+
+    const smth = await snapshot.ref
+      .getDownloadURL()
+      .then((v) => console.log(v));
+    console.log(smth);
+  };
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -95,12 +126,12 @@ function UpdateScreen(props: UpdateScreenProps) {
     });
     if (!result.cancelled) {
       if (type === "audio/*") {
+        //console.log(result.uri);
         setAudio(result.uri);
       } else if (type === "video/*") {
         setVideo(result.uri);
       }
     }
-    console.log(result);
   };
 
   return (
@@ -193,6 +224,7 @@ function UpdateScreen(props: UpdateScreenProps) {
               >
                 {VN_NAME.UPDATE_AUDIO}
               </Text>
+
               <TouchableOpacity
                 style={styles.chooseImage}
                 onPress={() => {
@@ -201,6 +233,11 @@ function UpdateScreen(props: UpdateScreenProps) {
               >
                 <Text style={{ color: "white" }}>{VN_NAME.CHOOSE_AUDIO}</Text>
               </TouchableOpacity>
+              {audio !== "" && (
+                <View>
+                  <AudioPlayer uri={audio} />
+                </View>
+              )}
               <Text
                 style={{
                   ...styles.updateTitle,
@@ -217,6 +254,7 @@ function UpdateScreen(props: UpdateScreenProps) {
               >
                 <Text style={{ color: "white" }}>{VN_NAME.CHOOSE_VIDEO}</Text>
               </TouchableOpacity>
+
               {video !== "" && (
                 <View
                   style={{
@@ -243,7 +281,7 @@ function UpdateScreen(props: UpdateScreenProps) {
                   />
                 </View>
               )}
-              <TouchableOpacity style={styles.submitButton}>
+              <TouchableOpacity style={styles.submitButton} onPress={submit}>
                 <Text style={{ color: "white", textAlign: "center" }}>
                   {VN_NAME.UPLOAD}
                 </Text>

@@ -20,7 +20,6 @@ enableScreens();
 
 const Stack = createSharedElementStackNavigator();
 const Tab = createBottomTabNavigator();
-
 function App() {
   return (
     <Provider store={globalStorage.store}>

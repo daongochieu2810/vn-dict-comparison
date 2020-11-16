@@ -3,11 +3,11 @@ import 'firebase/firestore';
 const firebaseConfig = {   
     apiKey : "AIzaSyCFvIHCWkKNoE5U5cUTspVAlszlsv_nMdU",
     authDomain : "vn-dict-comparison.firebaseapp.com",   
-    DatabaseURL : "https: // vn-dict- comparison.firebaseio.com ",
-    projectId : " vn-dict-comparison ",
-    storageBucket : " vn-dict-comparison.appspot.com ",
-    messagingSenderId : " 752423783280 ",
-    appId : " 1: 752423783280: web: 727859613c7efa40cfddb5 ",
+    DatabaseURL : "https://vn-dict-comparison.firebaseio.com",
+    projectId : "vn-dict-comparison",
+    storageBucket : "vn-dict-comparison.appspot.com",
+    messagingSenderId : "752423783280",
+    appId : "1:752423783280:web:727859613c7efa40cfddb5",
     measurementId : "G-R9B0ZKZSEP"
 };
 

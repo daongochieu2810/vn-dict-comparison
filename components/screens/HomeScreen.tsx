@@ -22,28 +22,11 @@ import WordScreen from "../cards/WordScreen";
 const { width, height } = Dimensions.get("window");
 const SharedElementStack = createSharedElementStackNavigator();
 export function HomeScreenStack() {
-  const iosTransitionSpec = {
-    animation: "spring",
-    config: {
-      stiffness: 1000,
-      damping: 500,
-      mass: 3,
-      overshootClamping: true,
-      restDisplacementThreshold: 10,
-      restSpeedThreshold: 10,
-    },
-  };
-  // ...
   return (
     <SharedElementStack.Navigator
       mode="modal"
       screenOptions={{
-        useNativeDriver: true,
         gestureEnabled: false,
-        transitionSpec: {
-          open: iosTransitionSpec,
-          close: iosTransitionSpec,
-        },
         cardStyleInterpolator: ({ current: { progress } }) => ({
           cardStyle: {
             opacity: progress,
