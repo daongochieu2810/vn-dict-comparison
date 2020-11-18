@@ -12,15 +12,22 @@ import {
   Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
+import { RootState } from "../../backend/reducers/RootReducer";
+import { connect } from "react-redux";
 import VN_NAME from "../../config/vn_name";
 import words from "../../data/words";
 import { Word } from "../cards/WordCard";
 import WordScreen from "../cards/WordScreen";
 
 const { height, width } = Dimensions.get("window");
-
-export default function ComparisonScreen() {
+const mapStateToProps = (state: RootState) => {
+  return {
+    dictionaryState: state.dictionaryReducer,
+  };
+};
+type ComparisonScreenProps = ReturnType<typeof mapStateToProps>;
+export default connect(mapStateToProps, {})(ComparisonScreen);
+function ComparisonScreen(props: ComparisonScreenProps) {
   const [wordList, setWordList] = useState<Word[]>(words);
   const [keyWord, setKeyWord] = useState<string>();
   const [chosenWord, setChosenWord] = useState<Word | undefined>();
@@ -28,7 +35,7 @@ export default function ComparisonScreen() {
   useEffect(() => {
     setWordList(words.filter((item) => item.word.includes(keyWord || "")));
   }, [keyWord]);
-  
+
   return (
     <SafeAreaView>
       <View style={styles.container}>
@@ -54,7 +61,7 @@ export default function ComparisonScreen() {
             renderItem={({ item, index }) => (
               <TouchableOpacity
                 onPress={() => {
-                    setChosenWord(item);
+                  setChosenWord(item);
                 }}
                 style={{
                   ...styles.compCard,

@@ -17,12 +17,18 @@ import { FlatList, TouchableOpacity } from "react-native-gesture-handler";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import * as ImagePicker from "expo-image-picker";
 import { connect } from "react-redux";
-import { setDictionary } from "../../backend/actions/DictionaryAction";
+import {
+  setDictionary,
+  addDictionary,
+  delDictionary,
+  editDictionary,
+} from "../../backend/actions/DictionaryAction";
 import {
   Dictionary,
   DictionaryState,
   DictionaryActionTypes,
 } from "../../backend/types/DictionaryType";
+import { Word } from "../cards/WordCard";
 import { RootState } from "../../backend/reducers/RootReducer";
 import { AnyAction, Dispatch } from "redux";
 import * as DocumentPicker from "expo-document-picker";
@@ -39,12 +45,21 @@ const mapDispatchToProps = (dispatch: Dispatch<DictionaryActionTypes>) => {
     reduxSetDictionary: (dictionaryState: DictionaryState) => {
       dispatch(setDictionary(dictionaryState));
     },
+    reduxAddDictionary: (word: Word) => {
+      dispatch(addDictionary(word));
+    },
+    reduxDelDictionary: (word: Word) => {
+      dispatch(delDictionary(word));
+    },
+    reduxEditDictionary: (word: Word) => {
+      dispatch(editDictionary(word));
+    },
   };
 };
 
 const mapStateToProps = (state: RootState) => {
   return {
-    dictionaryReducer: state.dictionaryReducer,
+    dictionaryState: state.dictionaryReducer,
   };
 };
 type UpdateScreenProps = ReturnType<typeof mapStateToProps> &
@@ -54,10 +69,13 @@ function UpdateScreen(props: UpdateScreenProps) {
   const [name, setName] = useState<string>("");
   const [explanation, setExplanation] = useState<string>("");
   const [groupComp, setGroupComp] = useState<string>("");
+  const [error, setError] = useState<string>("");
   const [showDropDown, setShowDropDown] = useState<boolean>(false);
+
   const [image, setImage] = useState<string>("");
   const [video, setVideo] = useState<string>("");
   const [audio, setAudio] = useState<string>("");
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const fadeIn = () => {
@@ -68,7 +86,6 @@ function UpdateScreen(props: UpdateScreenProps) {
       useNativeDriver: true,
     }).start();
   };
-
   const fadeOut = () => {
     Animated.timing(fadeAnim, {
       toValue: 0,
@@ -77,35 +94,70 @@ function UpdateScreen(props: UpdateScreenProps) {
     }).start();
     setShowDropDown(false);
   };
+  const uploadData = async (url: string, id: string, type: string) => {
+    try {
+      const blob: Blob = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+          resolve(xhr.response);
+        };
+        xhr.onerror = function (e) {
+          console.log(e);
+          reject(new TypeError("Network request failed"));
+        };
+        xhr.responseType = "blob";
+        xhr.open("GET", url, true);
+        xhr.send(null);
+      });
+      const extension = blob.type.split("/")[1];
 
+      const ref = firebase.storage
+        .ref()
+        .child(`dictionary/${id}/${type}.${extension}`);
+      const snapshot = await ref.put(blob);
+      const downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      console.log(e);
+    }
+  };
   const submit = async () => {
-    // try {
-    const blob: Blob = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.onload = function () {
-        resolve(xhr.response);
-      };
-      xhr.onerror = function (e) {
-        console.log(e);
-        reject(new TypeError("Network request failed"));
-      };
-      xhr.responseType = "blob";
-      xhr.open("GET", video, true);
-      xhr.send(null);
-    });
-    //console.log(blob.type)
-
-    const ref = firebase.storage.ref().child("files/hoho.mp4");
-    //console.log(ref)
-    const snapshot = await ref.put(blob); //.then((v) => console.log(v));
-    console.log(snapshot);
-    // We're done with the blob, close and release it
-    blob.close();
-
-    const smth = await snapshot.ref
-      .getDownloadURL()
-      .then((v) => console.log(v));
-    console.log(smth);
+    const dictionaryState = props.dictionaryState;
+    const id = dictionaryState.size.toString();
+    if (name === "" || explanation === "" || groupComp === "") {
+      setError("Chưa đủ thông tin!");
+      return;
+    }
+    let imageUrl = "",
+      audioUrl = "",
+      videoUrl = "";
+    if (image !== "") {
+      imageUrl = await uploadData(image, id, "image");
+    }
+    if (audio !== "") {
+      audioUrl = await uploadData(audio, id, "audio");
+    }
+    if (video !== "") {
+      videoUrl = await uploadData(video, id, "video");
+    }
+    let word: Word = {
+      id: id,
+      word: name,
+      groupComp: groupComp,
+      explanation: explanation,
+      image: imageUrl,
+      audio: audioUrl,
+      video: videoUrl,
+    };
+    let dictCollection = firebase.dictCollection;
+    dictCollection.add(word).catch((e) => console.log(e));
+    if (!props.dictionaryState) {
+      props.reduxSetDictionary({
+        dictionary: {},
+        size: 0,
+      });
+    }
+    props.reduxAddDictionary(word);
   };
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -126,7 +178,6 @@ function UpdateScreen(props: UpdateScreenProps) {
     });
     if (!result.cancelled) {
       if (type === "audio/*") {
-        //console.log(result.uri);
         setAudio(result.uri);
       } else if (type === "video/*") {
         setVideo(result.uri);

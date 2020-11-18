@@ -10,8 +10,11 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
+  ColorPropType,
 } from "react-native";
+import { connect } from "react-redux";
 import { NavigationProp } from "@react-navigation/native";
+import { RootState } from "../../backend/reducers/RootReducer";
 import { Ionicons } from "@expo/vector-icons";
 import { createSharedElementStackNavigator } from "react-navigation-shared-element";
 import VN_NAME from "../../config/vn_name";
@@ -21,7 +24,24 @@ import WordScreen from "../cards/WordScreen";
 
 const { width, height } = Dimensions.get("window");
 const SharedElementStack = createSharedElementStackNavigator();
-export function HomeScreenStack() {
+const mapStateToProps = (state: RootState) => {
+  return {
+    dictionaryState: state.dictionaryReducer,
+  };
+};
+type HomeScreenProps = ReturnType<typeof mapStateToProps>;
+export default connect(mapStateToProps, {})(HomeScreenStack);
+function HomeScreenStack(props: HomeScreenProps) {
+  useEffect(() => {
+    console.log("HELLO HOME");
+    console.log(props.dictionaryState);
+    if (props.dictionaryState) {
+      let dictionary = props.dictionaryState.dictionary;
+      for (let key of Object.keys(dictionary)) {
+        console.log(key);
+      }
+    }
+  }, [props.dictionaryState]);
   return (
     <SharedElementStack.Navigator
       mode="modal"
@@ -66,7 +86,7 @@ export function HomeScreenStack() {
     </SharedElementStack.Navigator>
   );
 }
-export default function HomeScreen(props) {
+function HomeScreen(props) {
   const navigation: NavigationProp<any> = props.navigation;
   const [wordList, setWordList] = useState<Word[]>(words);
   const [keyWord, setKeyWord] = useState<string>("");

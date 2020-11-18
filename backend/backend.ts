@@ -22,10 +22,10 @@ const FieldValue = firebase.firestore.FieldValue;
 const TaskEvent = firebase.storage.TaskEvent;
 const TaskState = firebase.storage.TaskState;
 
-const userCollection = db.collection('users');
+const dictCollection = db.collection('dictionary');
 
 export default {
-    userCollection,
+    dictCollection,
     auth,
     storage,
     FieldValue,
