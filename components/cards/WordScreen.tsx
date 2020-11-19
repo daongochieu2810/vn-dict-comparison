@@ -6,44 +6,43 @@ import {
   Image,
   ScrollView,
   Dimensions,
-  SafeAreaView
+  SafeAreaView,
 } from "react-native";
-import { SharedElement} from "react-navigation-shared-element";
+import { SharedElement } from "react-navigation-shared-element";
 import { Word } from "./WordCard";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import { StackNavigationProp } from '@react-navigation/stack';
+import { StackNavigationProp } from "@react-navigation/stack";
 const { width, height } = Dimensions.get("window");
-
 
 interface WordScreenProps {
   word: Word | undefined;
 }
 const WordScreen = ({ navigation, route }) => {
-  const {item} = route.params;
+  const { item } = route.params;
   return (
     <SafeAreaView style={styles.container}>
-  <ScrollView style={{marginVertical: 10}}>
-    <SharedElement id={`item.${item.word}.image`}>
-          <Image source={{uri : item.image}} style={styles.wordImage}/>
-    </SharedElement>
-     <SharedElement id={`item.${item.word}.name`}>
-          <Text style={styles.mainWord}>{item.word}</Text>
-    </SharedElement>
-      <Text style={styles.explanation}>{item.explanation}</Text>
-    <TouchableOpacity onPress={() => {
-        navigation.goBack();
-    }}>
-        <Text>Back</Text>
-    </TouchableOpacity>
-  </ScrollView>
-  </SafeAreaView>
+      <ScrollView style={{ marginVertical: 10 }}>
+        <Image source={{ uri: item.image }} style={styles.wordImage} />
+
+        <Text style={styles.mainWord}>{item.word}</Text>
+
+        <Text style={styles.explanation}>{item.explanation}</Text>
+        <TouchableOpacity
+          onPress={() => {
+            navigation.goBack();
+          }}
+        >
+          <Text>Back</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
-}
+};
 
 export default WordScreen;
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 10
+    marginHorizontal: 10,
   },
   mainWord: {
     fontWeight: "bold",

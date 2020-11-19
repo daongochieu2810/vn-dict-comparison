@@ -69,6 +69,7 @@ function UpdateScreen(props: UpdateScreenProps) {
   const [name, setName] = useState<string>("");
   const [explanation, setExplanation] = useState<string>("");
   const [groupComp, setGroupComp] = useState<string>("");
+  const [type, setType] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [showDropDown, setShowDropDown] = useState<boolean>(false);
 
@@ -124,7 +125,7 @@ function UpdateScreen(props: UpdateScreenProps) {
   const submit = async () => {
     const dictionaryState = props.dictionaryState;
     const id = dictionaryState.size.toString();
-    if (name === "" || explanation === "" || groupComp === "") {
+    if (name === "" || explanation === "" || groupComp === "" || type === "") {
       setError("Chưa đủ thông tin!");
       return;
     }
@@ -143,6 +144,7 @@ function UpdateScreen(props: UpdateScreenProps) {
     let word: Word = {
       id: id,
       word: name,
+      type: type,
       groupComp: groupComp,
       explanation: explanation,
       image: imageUrl,
@@ -176,7 +178,7 @@ function UpdateScreen(props: UpdateScreenProps) {
       type: type,
       copyToCacheDirectory: false,
     });
-    if (!result.cancelled) {
+    if (result.type !== "cancel") {
       if (type === "audio/*") {
         setAudio(result.uri);
       } else if (type === "video/*") {
@@ -187,15 +189,33 @@ function UpdateScreen(props: UpdateScreenProps) {
 
   return (
     <SafeAreaView>
-      <ScrollView>
-        <Text style={styles.title}>{VN_NAME.UPDATE_SCREEN}</Text>
-        <KeyboardAwareScrollView
-          resetScrollToCoords={{ x: 0, y: 0 }}
-          enableOnAndroid={true}
-          keyboardShouldPersistTaps="handled"
-          scrollEnabled={true}
-          enableAutomaticScroll={Platform.OS === "ios"}
-        >
+      <KeyboardAwareScrollView
+        showsVerticalScrollIndicator={false}
+        resetScrollToCoords={{ x: 0, y: 0 }}
+        enableOnAndroid={true}
+        keyboardShouldPersistTaps="handled"
+        scrollEnabled={true}
+        enableAutomaticScroll={Platform.OS === "ios"}
+      >
+        <>
+          <View
+            style={{
+              paddingBottom: 20,
+              width: width,
+              backgroundColor: "#ff425b",
+              borderBottomLeftRadius: 20,
+            }}
+          >
+            <Text style={styles.title}>{VN_NAME.UPDATE_SCREEN}</Text>
+          </View>
+          <View style={{ flexDirection: "row", marginBottom: -50 }}>
+            <View
+              style={{ width: "50%", height: 50, backgroundColor: "white" }}
+            ></View>
+            <View
+              style={{ width: "50%", height: 50, backgroundColor: "#ff425b" }}
+            ></View>
+          </View>
           <View style={styles.container}>
             <View style={styles.form}>
               <Text style={styles.updateTitle}>{VN_NAME.UPDATE_NAME}</Text>
@@ -217,6 +237,14 @@ function UpdateScreen(props: UpdateScreenProps) {
                   setExplanation(text);
                 }}
               />
+              <Text style={styles.updateTitle}>{VN_NAME.UPDATE_TYPE}</Text>
+              <TextInput
+                style={styles.updateInput}
+                value={type}
+                onChangeText={(text) => {
+                  setType(text);
+                }}
+              />
 
               <Text style={styles.updateTitle}>{VN_NAME.UPDATE_GROUP}</Text>
               <TextInput
@@ -231,6 +259,7 @@ function UpdateScreen(props: UpdateScreenProps) {
                   setGroupComp(text);
                 }}
               />
+
               {showDropDown && (
                 <Animated.View
                   style={{ ...styles.dropDown, opacity: fadeAnim }}
@@ -256,15 +285,17 @@ function UpdateScreen(props: UpdateScreenProps) {
               >
                 {VN_NAME.UPDATE_IMAGE}
               </Text>
-              <TouchableOpacity
-                style={styles.chooseImage}
-                onPress={() => {
-                  pickImage();
-                }}
-              >
-                <Text style={{ color: "white" }}>{VN_NAME.CHOOSE_IMAGE}</Text>
-              </TouchableOpacity>
-              {image !== "" && (
+              <View style={{ alignSelf: "baseline" }}>
+                <TouchableOpacity
+                  style={styles.chooseImage}
+                  onPress={() => {
+                    pickImage();
+                  }}
+                >
+                  <Text style={{ color: "white" }}>{VN_NAME.CHOOSE_IMAGE}</Text>
+                </TouchableOpacity>
+              </View>
+              {image !== null && image !== "" && (
                 <Image source={{ uri: image }} style={styles.image} />
               )}
               <Text
@@ -275,16 +306,17 @@ function UpdateScreen(props: UpdateScreenProps) {
               >
                 {VN_NAME.UPDATE_AUDIO}
               </Text>
-
-              <TouchableOpacity
-                style={styles.chooseImage}
-                onPress={() => {
-                  pickDocument("audio/*");
-                }}
-              >
-                <Text style={{ color: "white" }}>{VN_NAME.CHOOSE_AUDIO}</Text>
-              </TouchableOpacity>
-              {audio !== "" && (
+              <View style={{ alignSelf: "baseline" }}>
+                <TouchableOpacity
+                  style={styles.chooseImage}
+                  onPress={() => {
+                    pickDocument("audio/*");
+                  }}
+                >
+                  <Text style={{ color: "white" }}>{VN_NAME.CHOOSE_AUDIO}</Text>
+                </TouchableOpacity>
+              </View>
+              {audio !== null && audio !== "" && (
                 <View>
                   <AudioPlayer uri={audio} />
                 </View>
@@ -297,16 +329,17 @@ function UpdateScreen(props: UpdateScreenProps) {
               >
                 {VN_NAME.UPDATE_VIDEO}
               </Text>
-              <TouchableOpacity
-                style={styles.chooseImage}
-                onPress={() => {
-                  pickDocument("video/*");
-                }}
-              >
-                <Text style={{ color: "white" }}>{VN_NAME.CHOOSE_VIDEO}</Text>
-              </TouchableOpacity>
-
-              {video !== "" && (
+              <View style={{ alignSelf: "baseline" }}>
+                <TouchableOpacity
+                  style={styles.chooseImage}
+                  onPress={() => {
+                    pickDocument("video/*");
+                  }}
+                >
+                  <Text style={{ color: "white" }}>{VN_NAME.CHOOSE_VIDEO}</Text>
+                </TouchableOpacity>
+              </View>
+              {video !== null && video !== "" && (
                 <View
                   style={{
                     marginTop: 10,
@@ -332,6 +365,9 @@ function UpdateScreen(props: UpdateScreenProps) {
                   />
                 </View>
               )}
+              {error !== "" && (
+                <Text style={{ color: "red", marginTop: 20 }}>{error}</Text>
+              )}
               <TouchableOpacity style={styles.submitButton} onPress={submit}>
                 <Text style={{ color: "white", textAlign: "center" }}>
                   {VN_NAME.UPLOAD}
@@ -339,8 +375,8 @@ function UpdateScreen(props: UpdateScreenProps) {
               </TouchableOpacity>
             </View>
           </View>
-        </KeyboardAwareScrollView>
-      </ScrollView>
+        </>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
@@ -349,7 +385,10 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 10,
     paddingBottom: 10,
-    marginHorizontal: 5,
+    width: width,
+    backgroundColor: "white",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   image: {
     width: width * 0.88,
@@ -361,8 +400,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 5,
-    backgroundColor: "black",
-    alignSelf: "baseline",
+    backgroundColor: "#ff425b",
     marginTop: 10,
   },
   drowDownOption: {
@@ -384,6 +422,7 @@ const styles = StyleSheet.create({
     fontSize: width / 15,
     textAlign: "center",
     marginTop: 20,
+    color: "white",
   },
   updateTitle: {
     fontSize: width / 23,
@@ -396,11 +435,16 @@ const styles = StyleSheet.create({
   },
   form: {
     marginTop: 20,
+    marginHorizontal: 5,
     padding: 10,
     backgroundColor: "white",
     borderRadius: 10,
-    shadowOpacity: 0.2,
     paddingVertical: 20,
+    shadowColor: "black",
+    shadowOffset: { width: 10, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
   },
   submitButton: {
     borderRadius: 5,

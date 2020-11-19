@@ -6,95 +6,46 @@ import {
   StyleSheet,
   FlatList,
   TextInput,
-  Modal,
   TouchableOpacity,
   Dimensions,
-  Platform,
-  ColorPropType,
 } from "react-native";
 import { connect } from "react-redux";
 import { NavigationProp } from "@react-navigation/native";
 import { RootState } from "../../backend/reducers/RootReducer";
 import { Ionicons } from "@expo/vector-icons";
-import { createSharedElementStackNavigator } from "react-navigation-shared-element";
 import VN_NAME from "../../config/vn_name";
 import words from "../../data/words";
 import WordCard, { Word } from "../cards/WordCard";
 import WordScreen from "../cards/WordScreen";
 
 const { width, height } = Dimensions.get("window");
-const SharedElementStack = createSharedElementStackNavigator();
 const mapStateToProps = (state: RootState) => {
   return {
     dictionaryState: state.dictionaryReducer,
   };
 };
 type HomeScreenProps = ReturnType<typeof mapStateToProps>;
-export default connect(mapStateToProps, {})(HomeScreenStack);
-function HomeScreenStack(props: HomeScreenProps) {
-  useEffect(() => {
-    console.log("HELLO HOME");
-    console.log(props.dictionaryState);
-    if (props.dictionaryState) {
-      let dictionary = props.dictionaryState.dictionary;
-      for (let key of Object.keys(dictionary)) {
-        console.log(key);
-      }
-    }
-  }, [props.dictionaryState]);
-  return (
-    <SharedElementStack.Navigator
-      mode="modal"
-      screenOptions={{
-        gestureEnabled: false,
-        cardStyleInterpolator: ({ current: { progress } }) => ({
-          cardStyle: {
-            opacity: progress,
-          },
-        }),
-      }}
-      headerMode="none"
-    >
-      <SharedElementStack.Screen name="HomeScreen" component={HomeScreen} />
-      <SharedElementStack.Screen
-        name="WordScreen"
-        component={WordScreen}
-        sharedElementsConfig={(route, otherRoute, showing) => {
-          const { item } = route.params;
-          if (route.name === "WordScreen" && showing) {
-            return [
-              {
-                id: `item.${item.word}.image`,
-                animation: "move",
-              },
-              {
-                id: `item.${item.word}.name`,
-                animation: "fade",
-                resize: "clip",
-                align: "left-top",
-              },
-              {
-                id: `item.${item.word}.explanation`,
-                animation: "fade",
-                resize: "clip",
-                align: "left-top",
-              },
-            ];
-          }
-        }}
-      />
-    </SharedElementStack.Navigator>
-  );
-}
-function HomeScreen(props) {
-  const navigation: NavigationProp<any> = props.navigation;
-  const [wordList, setWordList] = useState<Word[]>(words);
+export default connect(mapStateToProps, {})(HomeScreen);
+function HomeScreen(props: HomeScreenProps) {
+  const [baseList, setBaseList] = useState<Word[]>([]);
+  const [wordList, setWordList] = useState<Word[]>([]);
   const [keyWord, setKeyWord] = useState<string>("");
   const [chosenWord, setChosenWord] = useState<Word | undefined>(undefined);
-
+  useEffect(() => {
+    let dictionaryState = props.dictionaryState;
+    let allWords: Word[] = [];
+    if (dictionaryState) {
+      for (let key of Object.keys(dictionaryState.dictionary)) {
+        allWords = [...allWords, ...dictionaryState.dictionary[key]];
+      }
+    }
+    console.log(allWords)
+    setBaseList(allWords);
+    setWordList(allWords);
+  }, [props.dictionaryState]);
   useEffect(() => {
     setWordList(
-      words.filter((item) =>
+      baseList.filter((item) =>
         item.word.toLowerCase().includes(keyWord.toLowerCase())
       )
     );
@@ -103,32 +54,64 @@ function HomeScreen(props) {
   return (
     <SafeAreaView>
       <View style={styles.container}>
-        <Text style={styles.title}>{VN_NAME.DICTIONARY_SCREEN}</Text>
-        <View style={styles.searchArea}>
-          <View style={styles.searchIconContainer}>
-            <Ionicons name="ios-search" size={35} />
+        <View
+          style={{
+            padding: 10,
+            width: width,
+            backgroundColor: "#ff425b",
+            borderBottomLeftRadius: 20,
+          }}
+        >
+          <Text style={styles.title}>{VN_NAME.DICTIONARY_SCREEN}</Text>
+          <View style={styles.searchArea}>
+            <View style={styles.searchIconContainer}>
+              <Ionicons name="ios-search" size={30} color="gray" />
+            </View>
+            <TextInput
+              style={styles.searchBar}
+              value={keyWord}
+              onChangeText={(text) => {
+                setKeyWord(text);
+              }}
+            />
           </View>
-          <TextInput
-            style={styles.searchBar}
-            value={keyWord}
-            onChangeText={(text) => {
-              setKeyWord(text);
-            }}
+        </View>
+        <View style={{ flexDirection: "row", marginBottom: -50 }}>
+          <View
+            style={{ width: "50%", height: 50, backgroundColor: "white" }}
+          ></View>
+          <View
+            style={{ width: "50%", height: 50, backgroundColor: "#ff425b" }}
+          ></View>
+        </View>
+        <View
+          style={{
+            width: width,
+            alignItems: "center",
+            backgroundColor: "white",
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+          }}
+        >
+          <FlatList
+            style={styles.wordList}
+            keyboardShouldPersistTaps={"always"}
+            showsVerticalScrollIndicator={false}
+            data={wordList}
+            keyExtractor={(item, index) => item + " " + index.toString()}
+            renderItem={({ item, index }) => (
+              <TouchableOpacity
+                style={{
+                  borderRadius: 10,
+                  marginBottom: index === wordList.length - 1 ? 300 : 0,
+                }}
+                onPress={() => {}}
+              >
+                <WordCard word={item} />
+              </TouchableOpacity>
+            )}
           />
         </View>
-        <FlatList
-          style={styles.wordList}
-          keyboardShouldPersistTaps={"always"}
-          data={wordList}
-          keyExtractor={(item, index) => item + " " + index.toString()}
-          renderItem={({ item, index }) => (
-            <TouchableOpacity
-              onPress={() => navigation.push("WordScreen", { item })}
-            >
-              <WordCard word={item} />
-            </TouchableOpacity>
-          )}
-        />
       </View>
     </SafeAreaView>
   );
@@ -136,8 +119,7 @@ function HomeScreen(props) {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 10,
-    padding: 10,
+    backgroundColor: "white",
     alignItems: "center",
   },
   modal: {
@@ -160,31 +142,35 @@ const styles = StyleSheet.create({
   title: {
     textAlign: "center",
     fontSize: width / 15,
+    color: "white",
   },
   wordList: {
     marginVertical: 10,
     marginBottom: 150,
   },
   searchArea: {
-    marginTop: 10,
+    width: "100%",
+    marginVertical: 10,
     flexDirection: "row",
+    justifyContent: "center",
   },
   searchBar: {
-    backgroundColor: "#d9d9d9",
-    width: "90%",
-    borderTopRightRadius: 20,
-    borderBottomRightRadius: 20,
-    height: 40,
+    backgroundColor: "white",
+    borderTopRightRadius: 25,
+    width: "85%",
+    alignSelf: "stretch",
+    borderBottomRightRadius: 25,
+    height: 50,
     paddingRight: 20,
     paddingLeft: 10,
   },
   searchIconContainer: {
     justifyContent: "center",
     alignItems: "center",
-    height: 40,
-    backgroundColor: "#d9d9d9",
-    paddingLeft: 10,
-    borderTopLeftRadius: 20,
-    borderBottomLeftRadius: 20,
+    height: 50,
+    backgroundColor: "white",
+    paddingLeft: 20,
+    borderTopLeftRadius: 25,
+    borderBottomLeftRadius: 25,
   },
 });

@@ -28,34 +28,85 @@ const mapStateToProps = (state: RootState) => {
 type ComparisonScreenProps = ReturnType<typeof mapStateToProps>;
 export default connect(mapStateToProps, {})(ComparisonScreen);
 function ComparisonScreen(props: ComparisonScreenProps) {
-  const [wordList, setWordList] = useState<Word[]>(words);
+  const [baseList, setBaseList] = useState<Word[]>([]);
+  const [wordList, setWordList] = useState<Word[]>([]);
   const [keyWord, setKeyWord] = useState<string>();
   const [chosenWord, setChosenWord] = useState<Word | undefined>();
 
   useEffect(() => {
-    setWordList(words.filter((item) => item.word.includes(keyWord || "")));
+    let dictionaryState = props.dictionaryState;
+    let allWords: Word[] = [];
+    if (dictionaryState) {
+      for (let key of Object.keys(dictionaryState.dictionary)) {
+        allWords = [...allWords, ...dictionaryState.dictionary[key]];
+      }
+    }
+    setBaseList(allWords);
+    setWordList(allWords);
+  }, [props.dictionaryState]);
+  useEffect(() => {
+    setWordList(baseList.filter((item) => item.word.includes(keyWord || "")));
   }, [keyWord]);
 
   return (
     <SafeAreaView>
       <View style={styles.container}>
-        <Text style={styles.title}>{VN_NAME.COMPARISON_SCREEN}</Text>
-        <View style={styles.searchArea}>
-          <View style={styles.searchIconContainer}>
-            <Ionicons name="ios-search" size={35} />
+        <View
+          style={{
+            width: width,
+            padding: 10,
+            backgroundColor: "#ff425b",
+            borderBottomLeftRadius: 20,
+          }}
+        >
+          <Text style={styles.title}>{VN_NAME.COMPARISON_SCREEN}</Text>
+          <View style={styles.searchArea}>
+            <View style={styles.searchIconContainer}>
+              <Ionicons name="ios-search" size={30} color="gray" />
+            </View>
+            <TextInput
+              style={styles.searchBar}
+              value={keyWord}
+              onChangeText={(text) => {
+                setKeyWord(text);
+              }}
+            />
           </View>
-          <TextInput
-            style={styles.searchBar}
-            value={keyWord}
-            onChangeText={(text) => {
-              setKeyWord(text);
-            }}
-          />
+        </View>
+        <View style={{ flexDirection: "row", marginBottom: -50 }}>
+          <View
+            style={{ width: "50%", height: 50, backgroundColor: "white" }}
+          ></View>
+          <View
+            style={{ width: "50%", height: 50, backgroundColor: "#ff425b" }}
+          ></View>
         </View>
         <View
-          style={{ flexDirection: "row", marginTop: 15, paddingHorizontal: 5 }}
+          style={{
+            paddingHorizontal: 10,
+            paddingVertical: 20,
+            width: width,
+            alignItems: "center",
+            backgroundColor: "white",
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+          }}
         >
           <FlatList
+            style={{
+              width: width - 40,
+              shadowColor: "black",
+              shadowOffset: { width: 10, height: 10 },
+              shadowOpacity: 0.1,
+              shadowRadius: 10,
+              elevation: 5,
+              backgroundColor: "white",
+              borderWidth: StyleSheet.hairlineWidth,
+              borderColor: "#ff425b",
+              borderRadius: 20,
+              marginBottom: 200,
+            }}
+            showsVerticalScrollIndicator={false}
             data={wordList}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item, index }) => (
@@ -63,31 +114,16 @@ function ComparisonScreen(props: ComparisonScreenProps) {
                 onPress={() => {
                   setChosenWord(item);
                 }}
-                style={{
-                  ...styles.compCard,
-                  borderTopLeftRadius: index === 0 ? 10 : 0,
-                  borderBottomLeftRadius: index === words.length - 1 ? 10 : 0,
-                }}
+                style={styles.compCard}
               >
-                <Text style={styles.word}>{item.word}</Text>
-              </TouchableOpacity>
-            )}
-          />
-          <FlatList
-            data={wordList}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item, index }) => (
-              <TouchableOpacity
-                onPress={() => {
-                  setChosenWord(item);
-                }}
-                style={{
-                  ...styles.compCard,
-                  borderTopRightRadius: index === 0 ? 10 : 0,
-                  borderBottomRightRadius: index === words.length - 1 ? 10 : 0,
-                }}
-              >
-                <Text style={styles.word}>{item.word}</Text>
+                <View style={{ flexDirection: "row" }}>
+                  <Text style={styles.word}>
+                    {item.word}
+                  </Text>
+                  <Text style={styles.word}>
+                    {item.word}
+                  </Text>
+                </View>
               </TouchableOpacity>
             )}
           />
@@ -98,43 +134,48 @@ function ComparisonScreen(props: ComparisonScreenProps) {
 }
 const styles = StyleSheet.create({
   container: {
-    marginTop: 10,
-    padding: 10,
+    backgroundColor: "white",
     alignItems: "center",
     height: height,
   },
   title: {
+    color: "white",
     fontSize: width / 15,
     textAlign: "center",
   },
   compCard: {
     padding: 10,
-    borderWidth: StyleSheet.hairlineWidth,
+    width: "100%",
+    alignItems: "center",
   },
   word: {
     textAlign: "center",
+    width: "50%"
   },
   searchArea: {
-    marginTop: 10,
+    width: "100%",
+    marginVertical: 10,
     flexDirection: "row",
+    justifyContent: "center",
   },
   searchBar: {
-    backgroundColor: "#d9d9d9",
-    width: "90%",
-    borderTopRightRadius: 20,
-    borderBottomRightRadius: 20,
-    height: 40,
+    backgroundColor: "white",
+    borderTopRightRadius: 25,
+    width: "85%",
+    alignSelf: "stretch",
+    borderBottomRightRadius: 25,
+    height: 50,
     paddingRight: 20,
     paddingLeft: 10,
   },
   searchIconContainer: {
     justifyContent: "center",
     alignItems: "center",
-    height: 40,
-    backgroundColor: "#d9d9d9",
-    paddingLeft: 10,
-    borderTopLeftRadius: 20,
-    borderBottomLeftRadius: 20,
+    height: 50,
+    backgroundColor: "white",
+    paddingLeft: 20,
+    borderTopLeftRadius: 25,
+    borderBottomLeftRadius: 25,
   },
   modal: {
     height: height * 0.7,
