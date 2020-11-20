@@ -17,23 +17,13 @@ const { width, height } = Dimensions.get("window");
 interface WordScreenProps {
   word: Word | undefined;
 }
-const WordScreen = ({ navigation, route }) => {
-  const { item } = route.params;
+const WordScreen = (props: WordScreenProps) => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={{ marginVertical: 10 }}>
-        <Image source={{ uri: item.image }} style={styles.wordImage} />
+        <Text style={styles.mainWord}>{props.word?.word}</Text>
 
-        <Text style={styles.mainWord}>{item.word}</Text>
-
-        <Text style={styles.explanation}>{item.explanation}</Text>
-        <TouchableOpacity
-          onPress={() => {
-            navigation.goBack();
-          }}
-        >
-          <Text>Back</Text>
-        </TouchableOpacity>
+        <Text style={styles.explanation}>{props.word?.explanation}</Text>
       </ScrollView>
     </SafeAreaView>
   );

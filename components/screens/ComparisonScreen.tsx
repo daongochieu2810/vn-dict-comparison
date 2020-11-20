@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
+  Animated,
   View,
   Text,
   StyleSheet,
@@ -16,7 +17,7 @@ import { RootState } from "../../backend/reducers/RootReducer";
 import { connect } from "react-redux";
 import VN_NAME from "../../config/vn_name";
 import words from "../../data/words";
-import { Word } from "../cards/WordCard";
+import WordCard, { Word } from "../cards/WordCard";
 import WordScreen from "../cards/WordScreen";
 
 const { height, width } = Dimensions.get("window");
@@ -25,14 +26,70 @@ const mapStateToProps = (state: RootState) => {
     dictionaryState: state.dictionaryReducer,
   };
 };
-type ComparisonScreenProps = ReturnType<typeof mapStateToProps>;
+export interface ComparisonBasicProps {
+  mounted: boolean;
+}
+type ComparisonScreenProps = ReturnType<typeof mapStateToProps> &
+  ComparisonBasicProps;
 export default connect(mapStateToProps, {})(ComparisonScreen);
 function ComparisonScreen(props: ComparisonScreenProps) {
+  const headerHeight = height / 5.5;
   const [baseList, setBaseList] = useState<Word[]>([]);
   const [wordList, setWordList] = useState<Word[]>([]);
-  const [keyWord, setKeyWord] = useState<string>();
+  const [keyWord, setKeyWord] = useState<string>("");
   const [chosenWord, setChosenWord] = useState<Word | undefined>();
 
+  const ref = useRef(null);
+  const scrollY = useRef(new Animated.Value(0));
+  const scrollYClamped = Animated.diffClamp(scrollY.current, 0, headerHeight);
+  const translateY = scrollYClamped.interpolate({
+    inputRange: [0, headerHeight],
+    outputRange: [0, -(headerHeight / 2.5)],
+  });
+
+  const translateYNumber = useRef();
+
+  translateY.addListener(({ value }) => {
+    translateYNumber.current = value;
+  });
+  const handleScroll = Animated.event(
+    [
+      {
+        nativeEvent: {
+          contentOffset: {
+            y: scrollY.current,
+          },
+        },
+      },
+    ],
+    {
+      useNativeDriver: true,
+    }
+  );
+  const getCloser = (value, checkOne, checkTwo) =>
+    Math.abs(value - checkOne) < Math.abs(value - checkTwo)
+      ? checkOne
+      : checkTwo;
+
+  const handleSnap = ({ nativeEvent }) => {
+    const offsetY = nativeEvent.contentOffset.y;
+    if (
+      !(
+        translateYNumber.current === 0 ||
+        translateYNumber.current === -headerHeight / 2
+      )
+    ) {
+      if (ref.current) {
+        ref.current?.scrollToOffset({
+          offset:
+            getCloser(translateYNumber.current, -headerHeight / 2, 0) ===
+            -headerHeight / 2
+              ? offsetY + headerHeight / 2
+              : offsetY - headerHeight / 2,
+        });
+      }
+    }
+  };
   useEffect(() => {
     let dictionaryState = props.dictionaryState;
     let allWords: Word[] = [];
@@ -43,23 +100,37 @@ function ComparisonScreen(props: ComparisonScreenProps) {
     }
     setBaseList(allWords);
     setWordList(allWords);
-  }, [props.dictionaryState]);
+  }, [props]);
   useEffect(() => {
-    setWordList(baseList.filter((item) => item.word.includes(keyWord || "")));
+    if (keyWord.trim() !== "") {
+      setWordList(
+        baseList.filter((item) =>
+          item.word.toLowerCase().includes(keyWord.toLowerCase())
+        )
+      );
+    }
   }, [keyWord]);
 
   return (
     <SafeAreaView>
       <View style={styles.container}>
-        <View
+        <Animated.View
           style={{
             width: width,
             padding: 10,
             backgroundColor: "#ff425b",
             borderBottomLeftRadius: 20,
+            borderBottomRightRadius: 20,
+            transform: [
+              {
+                translateY,
+              },
+            ],
           }}
         >
-          <Text style={styles.title}>{VN_NAME.COMPARISON_SCREEN}</Text>
+          <Text style={{ ...styles.title, height: headerHeight / 2.5 }}>
+            {VN_NAME.COMPARISON_SCREEN}
+          </Text>
           <View style={styles.searchArea}>
             <View style={styles.searchIconContainer}>
               <Ionicons name="ios-search" size={30} color="gray" />
@@ -72,62 +143,63 @@ function ComparisonScreen(props: ComparisonScreenProps) {
               }}
             />
           </View>
-        </View>
-        <View style={{ flexDirection: "row", marginBottom: -50 }}>
-          <View
-            style={{ width: "50%", height: 50, backgroundColor: "white" }}
-          ></View>
-          <View
-            style={{ width: "50%", height: 50, backgroundColor: "#ff425b" }}
-          ></View>
-        </View>
-        <View
+        </Animated.View>
+
+        <Animated.View
           style={{
-            paddingHorizontal: 10,
-            paddingVertical: 20,
             width: width,
             alignItems: "center",
             backgroundColor: "white",
             borderTopLeftRadius: 20,
             borderTopRightRadius: 20,
+            transform: [
+              {
+                translateY,
+              },
+            ],
           }}
         >
-          <FlatList
+          <Animated.FlatList
             style={{
-              width: width - 40,
-              shadowColor: "black",
-              shadowOffset: { width: 10, height: 10 },
-              shadowOpacity: 0.1,
-              shadowRadius: 10,
-              elevation: 5,
               backgroundColor: "white",
-              borderWidth: StyleSheet.hairlineWidth,
-              borderColor: "#ff425b",
-              borderRadius: 20,
-              marginBottom: 200,
             }}
+            scrollEventThrottle={16}
+            ref={ref}
+            onScroll={handleScroll}
+            onMomentumScrollEnd={handleSnap}
             showsVerticalScrollIndicator={false}
             data={wordList}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item, index }) => (
-              <TouchableOpacity
-                onPress={() => {
-                  setChosenWord(item);
+              <View
+                style={{
+                  flexDirection: "row",
+                  backgroundColor: "#ffa099",
+                  borderRadius: 10,
+                  marginTop: 10,
+                  marginBottom: index === wordList.length - 1 ? 300 : 0,
                 }}
-                style={styles.compCard}
               >
-                <View style={{ flexDirection: "row" }}>
-                  <Text style={styles.word}>
-                    {item.word}
-                  </Text>
-                  <Text style={styles.word}>
-                    {item.word}
-                  </Text>
-                </View>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={{
+                    borderRadius: 10,
+                  }}
+                  onPress={() => {}}
+                >
+                  <WordCard word={item} width={width * 0.43} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{
+                    borderRadius: 10,
+                  }}
+                  onPress={() => {}}
+                >
+                  <WordCard word={item} width={width * 0.43} />
+                </TouchableOpacity>
+              </View>
             )}
           />
-        </View>
+        </Animated.View>
       </View>
     </SafeAreaView>
   );
@@ -150,7 +222,7 @@ const styles = StyleSheet.create({
   },
   word: {
     textAlign: "center",
-    width: "50%"
+    width: "50%",
   },
   searchArea: {
     width: "100%",

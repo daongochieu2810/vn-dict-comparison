@@ -17,11 +17,12 @@ export interface Word {
 
 interface WordCardProps {
   word: Word;
+  width: number;
 }
 
 export default function WordCard(props: WordCardProps) {
   return (
-    <View style={styles.container}>
+    <View style={{...styles.container, width: props.width}}>
       <View style={{ flex: 1 }}>
         <Text style={styles.mainWord}>{props.word.word}</Text>
         <Text style={styles.typeWord}>{props.word.type}</Text>
@@ -40,7 +41,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     borderRadius: 10,
-    width: width * 0.9,
     height: height * 0.3,
     padding: 10,
     margin: 10,

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
+  Animated,
   SafeAreaView,
   View,
   Text,
@@ -8,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   Dimensions,
+  Modal,
 } from "react-native";
 import { connect } from "react-redux";
 import { NavigationProp } from "@react-navigation/native";
@@ -24,13 +26,68 @@ const mapStateToProps = (state: RootState) => {
     dictionaryState: state.dictionaryReducer,
   };
 };
-type HomeScreenProps = ReturnType<typeof mapStateToProps>;
+export interface HomeBasicProps {
+  mounted: boolean;
+}
+type HomeScreenProps = ReturnType<typeof mapStateToProps> & HomeBasicProps;
 export default connect(mapStateToProps, {})(HomeScreen);
 function HomeScreen(props: HomeScreenProps) {
+  const headerHeight = height / 5.5;
   const [baseList, setBaseList] = useState<Word[]>([]);
   const [wordList, setWordList] = useState<Word[]>([]);
   const [keyWord, setKeyWord] = useState<string>("");
   const [chosenWord, setChosenWord] = useState<Word | undefined>(undefined);
+  const ref = useRef(null);
+  const scrollY = useRef(new Animated.Value(0));
+  const scrollYClamped = Animated.diffClamp(scrollY.current, 0, headerHeight);
+  const translateY = scrollYClamped.interpolate({
+    inputRange: [0, headerHeight],
+    outputRange: [0, -(headerHeight / 2.5)],
+  });
+
+  const translateYNumber = useRef();
+
+  translateY.addListener(({ value }) => {
+    translateYNumber.current = value;
+  });
+  const handleScroll = Animated.event(
+    [
+      {
+        nativeEvent: {
+          contentOffset: {
+            y: scrollY.current,
+          },
+        },
+      },
+    ],
+    {
+      useNativeDriver: true,
+    }
+  );
+  const getCloser = (value, checkOne, checkTwo) =>
+    Math.abs(value - checkOne) < Math.abs(value - checkTwo)
+      ? checkOne
+      : checkTwo;
+
+  const handleSnap = ({ nativeEvent }) => {
+    const offsetY = nativeEvent.contentOffset.y;
+    if (
+      !(
+        translateYNumber.current === 0 ||
+        translateYNumber.current === -headerHeight / 2
+      )
+    ) {
+      if (ref.current) {
+        ref.current?.scrollToOffset({
+          offset:
+            getCloser(translateYNumber.current, -headerHeight / 2, 0) ===
+            -headerHeight / 2
+              ? offsetY + headerHeight / 2
+              : offsetY - headerHeight / 2,
+        });
+      }
+    }
+  };
   useEffect(() => {
     let dictionaryState = props.dictionaryState;
     let allWords: Word[] = [];
@@ -39,31 +96,42 @@ function HomeScreen(props: HomeScreenProps) {
         allWords = [...allWords, ...dictionaryState.dictionary[key]];
       }
     }
-    console.log(allWords)
+    //console.log(allWords);
     setBaseList(allWords);
     setWordList(allWords);
-  }, [props.dictionaryState]);
+  }, [props]);
   useEffect(() => {
-    setWordList(
-      baseList.filter((item) =>
-        item.word.toLowerCase().includes(keyWord.toLowerCase())
-      )
-    );
+    if (keyWord.trim() !== "") {
+      setWordList(
+        baseList.filter((item) =>
+          item.word.toLowerCase().includes(keyWord.toLowerCase())
+        )
+      );
+    }
   }, [keyWord]);
 
   return (
     <SafeAreaView>
       <View style={styles.container}>
-        <View
+        <Animated.View
           style={{
             padding: 10,
+
             width: width,
             backgroundColor: "#ff425b",
             borderBottomLeftRadius: 20,
+            borderBottomRightRadius: 20,
+            transform: [
+              {
+                translateY,
+              },
+            ],
           }}
         >
-          <Text style={styles.title}>{VN_NAME.DICTIONARY_SCREEN}</Text>
-          <View style={styles.searchArea}>
+          <Text style={{ ...styles.title, height: headerHeight / 2.5 }}>
+            {VN_NAME.DICTIONARY_SCREEN}
+          </Text>
+          <View style={{ ...styles.searchArea }}>
             <View style={styles.searchIconContainer}>
               <Ionicons name="ios-search" size={30} color="gray" />
             </View>
@@ -75,25 +143,26 @@ function HomeScreen(props: HomeScreenProps) {
               }}
             />
           </View>
-        </View>
-        <View style={{ flexDirection: "row", marginBottom: -50 }}>
-          <View
-            style={{ width: "50%", height: 50, backgroundColor: "white" }}
-          ></View>
-          <View
-            style={{ width: "50%", height: 50, backgroundColor: "#ff425b" }}
-          ></View>
-        </View>
-        <View
+        </Animated.View>
+        <Animated.View
           style={{
             width: width,
             alignItems: "center",
             backgroundColor: "white",
             borderTopLeftRadius: 20,
             borderTopRightRadius: 20,
+            transform: [
+              {
+                translateY,
+              },
+            ],
           }}
         >
-          <FlatList
+          <Animated.FlatList
+            scrollEventThrottle={16}
+            ref={ref}
+            onScroll={handleScroll}
+            onMomentumScrollEnd={handleSnap}
             style={styles.wordList}
             keyboardShouldPersistTaps={"always"}
             showsVerticalScrollIndicator={false}
@@ -105,14 +174,54 @@ function HomeScreen(props: HomeScreenProps) {
                   borderRadius: 10,
                   marginBottom: index === wordList.length - 1 ? 300 : 0,
                 }}
-                onPress={() => {}}
+                onPress={() => {
+                  setChosenWord(item);
+                }}
               >
-                <WordCard word={item} />
+                <WordCard word={item} width={width * 0.9} />
               </TouchableOpacity>
             )}
           />
-        </View>
+        </Animated.View>
       </View>
+      <Modal
+        visible={chosenWord ? true : false}
+        animationType="slide"
+        onRequestClose={() => {
+          setChosenWord(undefined);
+        }}
+      >
+        <SafeAreaView
+          style={{
+            width: width,
+            height: height,
+          }}
+        >
+          <View
+            style={{
+              padding: 20,
+            }}
+          >
+            <TouchableOpacity
+              style={{
+                borderRadius: 20,
+                backgroundColor: "#ff425b",
+                alignSelf: "baseline",
+                width: 40,
+                height: 40,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onPress={() => {
+                setChosenWord(undefined);
+              }}
+            >
+              <Ionicons name="ios-arrow-round-back" size={36} />
+            </TouchableOpacity>
+            <WordScreen word={chosenWord} />
+          </View>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -145,7 +254,6 @@ const styles = StyleSheet.create({
     color: "white",
   },
   wordList: {
-    marginVertical: 10,
     marginBottom: 150,
   },
   searchArea: {
