@@ -188,7 +188,11 @@ function UpdateScreen(props: UpdateScreenProps) {
   };
 
   return (
-    <SafeAreaView>
+    <SafeAreaView
+      style={{
+        backgroundColor: "white",
+      }}
+    >
       <KeyboardAwareScrollView
         showsVerticalScrollIndicator={false}
         resetScrollToCoords={{ x: 0, y: 0 }}
@@ -269,7 +273,13 @@ function UpdateScreen(props: UpdateScreenProps) {
                     horizontal={true}
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={({ item, index }) => (
-                      <TouchableOpacity style={styles.drowDownOption}>
+                      <TouchableOpacity
+                        style={styles.drowDownOption}
+                        onPress={() => {
+                          setGroupComp(item);
+                          setShowDropDown(false);
+                        }}
+                      >
                         <Text>{item}</Text>
                       </TouchableOpacity>
                     )}
@@ -429,7 +439,7 @@ const styles = StyleSheet.create({
   },
   updateInput: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    height: height / 25,
+    height: 50,
     marginBottom: 20,
     marginHorizontal: 5,
   },

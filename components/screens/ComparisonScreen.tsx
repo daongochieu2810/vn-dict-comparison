@@ -174,7 +174,6 @@ function ComparisonScreen(props: ComparisonScreenProps) {
               <View
                 style={{
                   flexDirection: "row",
-                  backgroundColor: "#ffa099",
                   borderRadius: 10,
                   marginTop: 10,
                   marginBottom: index === wordList.length - 1 ? 300 : 0,
@@ -184,7 +183,9 @@ function ComparisonScreen(props: ComparisonScreenProps) {
                   style={{
                     borderRadius: 10,
                   }}
-                  onPress={() => {}}
+                  onPress={() => {
+                    setChosenWord(item);
+                  }}
                 >
                   <WordCard word={item} width={width * 0.43} />
                 </TouchableOpacity>
@@ -192,7 +193,9 @@ function ComparisonScreen(props: ComparisonScreenProps) {
                   style={{
                     borderRadius: 10,
                   }}
-                  onPress={() => {}}
+                  onPress={() => {
+                    setChosenWord(item);
+                  }}
                 >
                   <WordCard word={item} width={width * 0.43} />
                 </TouchableOpacity>
@@ -201,6 +204,42 @@ function ComparisonScreen(props: ComparisonScreenProps) {
           />
         </Animated.View>
       </View>
+      <Modal
+        visible={chosenWord ? true : false}
+        animationType="slide"
+        onRequestClose={() => {
+          setChosenWord(undefined);
+        }}
+      >
+        <SafeAreaView
+          style={{
+            width: width,
+            height: height,
+          }}
+        >
+          <View>
+            <TouchableOpacity
+              style={{
+                marginTop: 20,
+                marginLeft: 10,
+                borderRadius: 20,
+                backgroundColor: "#ff425b",
+                alignSelf: "baseline",
+                width: 40,
+                height: 40,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onPress={() => {
+                setChosenWord(undefined);
+              }}
+            >
+              <Ionicons name="ios-arrow-round-back" size={36} />
+            </TouchableOpacity>
+            <WordScreen word={chosenWord} />
+          </View>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
