@@ -98,6 +98,7 @@ function ComparisonScreen(props: ComparisonScreenProps) {
         allWords = [...allWords, ...dictionaryState.dictionary[key]];
       }
     }
+    allWords = allWords.filter((item) => item.groupComp !== null);
     setBaseList(allWords);
     setWordList(allWords);
   }, [props]);
@@ -194,10 +195,10 @@ function ComparisonScreen(props: ComparisonScreenProps) {
                     borderRadius: 10,
                   }}
                   onPress={() => {
-                    setChosenWord(item);
+                    setChosenWord(item.groupComp);
                   }}
                 >
-                  <WordCard word={item} width={width * 0.43} />
+                  <WordCard word={item.groupComp} width={width * 0.43} />
                 </TouchableOpacity>
               </View>
             )}

@@ -21,7 +21,7 @@ interface WordScreenProps {
 }
 const WordScreen = (props: WordScreenProps) => {
   return (
-    <SafeAreaView>
+    <SafeAreaView> 
       <ScrollView style={{ marginVertical: 10 }}>
         <ScrollView
           showsHorizontalScrollIndicator={false}

@@ -140,30 +140,26 @@ function UpdateScreen(props: UpdateScreenProps) {
   const submit = async () => {
     setIsUploading(true);
     const dictionaryState = props.dictionaryState;
-    const id = dictionaryState.size.toString();
-    if (
-      name === "" ||
-      explanation === "" ||
-      groupComp === null ||
-      type === ""
-    ) {
+    if (name === "" || explanation === "" || type === "") {
       setError("Chưa đủ thông tin!");
       return;
+    }
+    if (groupComp !== null) {
     }
     let imageUrl = "",
       audioUrl = "",
       videoUrl = "";
     if (image !== "") {
-      imageUrl = await uploadData(image, id, "image");
+      imageUrl = await uploadData(image, name, "image");
     }
     if (audio !== "") {
-      audioUrl = await uploadData(audio, id, "audio");
+      audioUrl = await uploadData(audio, name, "audio");
     }
     if (video !== "") {
-      videoUrl = await uploadData(video, id, "video");
+      videoUrl = await uploadData(video, name, "video");
     }
     let word: Word = {
-      id: id,
+      id: name,
       word: name,
       type: type,
       groupComp: groupComp,
@@ -173,7 +169,10 @@ function UpdateScreen(props: UpdateScreenProps) {
       video: videoUrl,
     };
     let dictCollection = firebase.dictCollection;
-    await dictCollection.add(word).catch((e) => console.log(e));
+    await dictCollection
+      .doc(name)
+      .set(word)
+      .catch((e) => console.log(e));
     if (!props.dictionaryState) {
       props.reduxSetDictionary({
         dictionary: {},
@@ -185,7 +184,7 @@ function UpdateScreen(props: UpdateScreenProps) {
     Toast.show({
       type: "success",
       position: "top",
-      text1: 'Đã thêm từ',
+      text1: "Đã thêm từ",
       text2: "Thành công",
       visibilityTime: 3000,
       autoHide: true,

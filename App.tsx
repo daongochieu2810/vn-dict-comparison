@@ -20,7 +20,7 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { enableScreens } from "react-native-screens";
 enableScreens();
-
+console.disableYellowBox = true;
 const Stack = createSharedElementStackNavigator();
 const Tab = createBottomTabNavigator();
 function MainTabNav() {

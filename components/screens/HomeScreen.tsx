@@ -10,33 +10,65 @@ import {
   TouchableOpacity,
   Dimensions,
   Modal,
+  ActivityIndicator,
 } from "react-native";
 import { connect } from "react-redux";
 import { NavigationProp } from "@react-navigation/native";
 import { RootState } from "../../backend/reducers/RootReducer";
 import { Ionicons } from "@expo/vector-icons";
 import VN_NAME from "../../config/vn_name";
-import words from "../../data/words";
+import fb from "../../backend/backend";
 import WordCard, { Word } from "../cards/WordCard";
 import WordScreen from "../cards/WordScreen";
+import {
+  setDictionary,
+  addDictionary,
+  delDictionary,
+  editDictionary,
+} from "../../backend/actions/DictionaryAction";
+import {
+  Dictionary,
+  DictionaryState,
+  DictionaryActionTypes,
+} from "../../backend/types/DictionaryType";
 
+import { AnyAction, Dispatch } from "redux";
 const { width, height } = Dimensions.get("window");
 const mapStateToProps = (state: RootState) => {
   return {
     dictionaryState: state.dictionaryReducer,
   };
 };
+const mapDispatchToProps = (dispatch: Dispatch<DictionaryActionTypes>) => {
+  return {
+    reduxSetDictionary: (dictionaryState: DictionaryState) => {
+      dispatch(setDictionary(dictionaryState));
+    },
+    reduxAddDictionary: (word: Word) => {
+      dispatch(addDictionary(word));
+    },
+    reduxDelDictionary: (word: Word) => {
+      dispatch(delDictionary(word));
+    },
+    reduxEditDictionary: (word: Word) => {
+      dispatch(editDictionary(word));
+    },
+  };
+};
 export interface HomeBasicProps {
   mounted: boolean;
 }
-type HomeScreenProps = ReturnType<typeof mapStateToProps> & HomeBasicProps;
-export default connect(mapStateToProps, {})(HomeScreen);
+type HomeScreenProps = ReturnType<typeof mapStateToProps> &
+  HomeBasicProps &
+  ReturnType<typeof mapDispatchToProps>;
+export default connect(mapStateToProps, mapDispatchToProps)(HomeScreen);
 function HomeScreen(props: HomeScreenProps) {
   const headerHeight = height / 5.5;
   const [baseList, setBaseList] = useState<Word[]>([]);
   const [wordList, setWordList] = useState<Word[]>([]);
   const [keyWord, setKeyWord] = useState<string>("");
   const [chosenWord, setChosenWord] = useState<Word | undefined>(undefined);
+  const [isRetrieving, setIsRetrieving] = useState<boolean>(false);
   const ref = useRef(null);
   const scrollY = useRef(new Animated.Value(0));
   const scrollYClamped = Animated.diffClamp(scrollY.current, 0, headerHeight);
@@ -89,6 +121,23 @@ function HomeScreen(props: HomeScreenProps) {
     }
   };
   useEffect(() => {
+    setIsRetrieving(true);
+    props.reduxSetDictionary({
+      dictionary: {},
+      size: 0,
+    });
+    fb.dictCollection
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach(function (doc) {
+          props.reduxAddDictionary(doc.data());
+        });
+      })
+      .then(() => {
+        setIsRetrieving(false);
+      });
+  }, [props.mounted]);
+  useEffect(() => {
     let dictionaryState = props.dictionaryState;
     let allWords: Word[] = [];
     if (dictionaryState) {
@@ -113,10 +162,27 @@ function HomeScreen(props: HomeScreenProps) {
   return (
     <SafeAreaView>
       <View style={styles.container}>
+        {isRetrieving && (
+          <View
+            style={{
+              width: width,
+              height: height,
+              position: "absolute",
+              left: 0,
+              top: 0,
+              justifyContent: "center",
+              alignContent: "center",
+              backgroundColor: "#FFFFFF",
+              opacity: 0.5,
+              zIndex: 2,
+            }}
+          >
+            <ActivityIndicator size="large" color="#0000ff" />
+          </View>
+        )}
         <Animated.View
           style={{
             padding: 10,
-
             width: width,
             backgroundColor: "#ff425b",
             borderBottomLeftRadius: 20,
@@ -131,6 +197,7 @@ function HomeScreen(props: HomeScreenProps) {
           <Text style={{ ...styles.title, height: headerHeight / 2.5 }}>
             {VN_NAME.DICTIONARY_SCREEN}
           </Text>
+
           <View style={{ ...styles.searchArea }}>
             <View style={styles.searchIconContainer}>
               <Ionicons name="ios-search" size={30} color="gray" />
@@ -198,24 +265,48 @@ function HomeScreen(props: HomeScreenProps) {
           }}
         >
           <View>
-            <TouchableOpacity
+            <View
               style={{
-                marginTop: 20,
-                marginLeft: 10,
-                borderRadius: 20,
-                backgroundColor: "#ff425b",
-                alignSelf: "baseline",
-                width: 40,
-                height: 40,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              onPress={() => {
-                setChosenWord(undefined);
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginBottom: 5,
               }}
             >
-              <Ionicons name="ios-arrow-round-back" size={36} />
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  marginTop: 20,
+                  marginLeft: 10,
+                  borderRadius: 20,
+                  backgroundColor: "#ff425b",
+                  alignSelf: "baseline",
+                  width: 40,
+                  height: 40,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                onPress={() => {
+                  setChosenWord(undefined);
+                }}
+              >
+                <Ionicons name="ios-arrow-round-back" size={36} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  marginTop: 20,
+                  marginRight: 20,
+                }}
+                onPress={() => {
+                  if (chosenWord) {
+                    props.reduxDelDictionary(chosenWord);
+                    setBaseList(baseList.filter((item) => item !== chosenWord));
+                    setWordList(baseList.filter((item) => item !== chosenWord));
+                    setChosenWord(undefined);
+                  }
+                }}
+              >
+                <Text style={{ fontSize: 20, color: "#ff425b" }}>Xóa</Text>
+              </TouchableOpacity>
+            </View>
             <WordScreen word={chosenWord} />
           </View>
         </SafeAreaView>
