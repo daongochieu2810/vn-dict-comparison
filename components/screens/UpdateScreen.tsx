@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
   },
   updateInput: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    height: height / 25,
+    height: 50,
     marginBottom: 20,
     marginHorizontal: 5,
   },

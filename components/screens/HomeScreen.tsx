@@ -197,13 +197,11 @@ function HomeScreen(props: HomeScreenProps) {
             height: height,
           }}
         >
-          <View
-            style={{
-              padding: 20,
-            }}
-          >
+          <View>
             <TouchableOpacity
               style={{
+                marginTop: 20,
+                marginLeft: 10,
                 borderRadius: 20,
                 backgroundColor: "#ff425b",
                 alignSelf: "baseline",
