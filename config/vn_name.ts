@@ -8,7 +8,7 @@ const VN_NAME = {
     UPDATE_IMAGE: "Ảnh minh hoạ",
     UPDATE_AUDIO: "Âm thanh",
     UPDATE_VIDEO: "Video",
-    UPDATE_GROUP: "Nhóm so sánh",
+    UPDATE_GROUP: "Từ so sánh",
     CHOOSE_IMAGE: "Chọn ảnh",
     CHOOSE_AUDIO: "Chọn âm thanh",
     CHOOSE_VIDEO: "Chọn video",

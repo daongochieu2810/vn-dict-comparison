@@ -11,6 +11,7 @@ import {
   Image,
   ScrollView,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import { Video } from "expo-av";
 import { FlatList, TouchableOpacity } from "react-native-gesture-handler";
@@ -35,10 +36,9 @@ import * as DocumentPicker from "expo-document-picker";
 import AudioPlayer from "../media/AudioPlayer";
 import firebase from "../../backend/backend";
 import VN_NAME from "../../config/vn_name";
+import Toast from "react-native-toast-message";
 
 const { width, height } = Dimensions.get("window");
-
-const groups = ["n-l", "n-l", "n -l"];
 
 const mapDispatchToProps = (dispatch: Dispatch<DictionaryActionTypes>) => {
   return {
@@ -68,17 +68,32 @@ export default connect(mapStateToProps, mapDispatchToProps)(UpdateScreen);
 function UpdateScreen(props: UpdateScreenProps) {
   const [name, setName] = useState<string>("");
   const [explanation, setExplanation] = useState<string>("");
-  const [groupComp, setGroupComp] = useState<string>("");
+  const [groupComp, setGroupComp] = useState<Word>(null);
+  const [groupCompText, setGroupCompText] = useState<string>("");
   const [type, setType] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [compError, setCompError] = useState<boolean>(false);
   const [showDropDown, setShowDropDown] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const [image, setImage] = useState<string>("");
   const [video, setVideo] = useState<string>("");
   const [audio, setAudio] = useState<string>("");
 
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [groups, setGroups] = useState<Word[]>([]);
+  const [groupSuggestion, setGroupSuggestion] = useState<Word[]>([]);
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    let dictionaryState = props.dictionaryState;
+    let allWords: Word[] = [];
+    if (dictionaryState) {
+      for (let key of Object.keys(dictionaryState.dictionary)) {
+        allWords = [...allWords, ...dictionaryState.dictionary[key]];
+      }
+    }
+    setGroups(allWords);
+  }, [props]);
   const fadeIn = () => {
     setShowDropDown(true);
     Animated.timing(fadeAnim, {
@@ -123,9 +138,15 @@ function UpdateScreen(props: UpdateScreenProps) {
     }
   };
   const submit = async () => {
+    setIsUploading(true);
     const dictionaryState = props.dictionaryState;
     const id = dictionaryState.size.toString();
-    if (name === "" || explanation === "" || groupComp === "" || type === "") {
+    if (
+      name === "" ||
+      explanation === "" ||
+      groupComp === null ||
+      type === ""
+    ) {
       setError("Chưa đủ thông tin!");
       return;
     }
@@ -152,7 +173,7 @@ function UpdateScreen(props: UpdateScreenProps) {
       video: videoUrl,
     };
     let dictCollection = firebase.dictCollection;
-    dictCollection.add(word).catch((e) => console.log(e));
+    await dictCollection.add(word).catch((e) => console.log(e));
     if (!props.dictionaryState) {
       props.reduxSetDictionary({
         dictionary: {},
@@ -160,6 +181,15 @@ function UpdateScreen(props: UpdateScreenProps) {
       });
     }
     props.reduxAddDictionary(word);
+    setIsUploading(false);
+    Toast.show({
+      type: "success",
+      position: "top",
+      text1: 'Đã thêm từ',
+      text2: "Thành công",
+      visibilityTime: 3000,
+      autoHide: true,
+    });
   };
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -189,6 +219,24 @@ function UpdateScreen(props: UpdateScreenProps) {
 
   return (
     <SafeAreaView>
+      {isUploading && (
+        <View
+          style={{
+            width: width,
+            height: height,
+            position: "absolute",
+            left: 0,
+            top: 0,
+            justifyContent: "center",
+            alignContent: "center",
+            backgroundColor: "#FFFFFF",
+            opacity: 0.5,
+            zIndex: 2,
+          }}
+        >
+          <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+      )}
       <KeyboardAwareScrollView
         showsVerticalScrollIndicator={false}
         resetScrollToCoords={{ x: 0, y: 0 }}
@@ -248,29 +296,70 @@ function UpdateScreen(props: UpdateScreenProps) {
 
               <Text style={styles.updateTitle}>{VN_NAME.UPDATE_GROUP}</Text>
               <TextInput
-                style={styles.updateInput}
-                value={groupComp}
+                style={{
+                  ...styles.updateInput,
+                  color: compError ? "red" : "black",
+                }}
+                onBlur={() => {
+                  if (groupComp === null) {
+                    setCompError(true);
+                  }
+                }}
+                onFocus={() => {
+                  setCompError(false);
+                }}
+                value={groupCompText}
                 onChangeText={(text) => {
                   if (text !== "") {
-                    fadeIn();
+                    let currSuggestions = [];
+                    for (let group of groups) {
+                      if (
+                        group.word.toLowerCase().includes(text.toLowerCase())
+                      ) {
+                        currSuggestions.push(group);
+                      }
+                    }
+                    if (currSuggestions.length > 0) {
+                      setCompError(false);
+                      fadeIn();
+                    } else {
+                      setCompError(true);
+                      fadeOut();
+                    }
+                    setGroupSuggestion(currSuggestions);
                   } else {
+                    setCompError(false);
                     fadeOut();
                   }
-                  setGroupComp(text);
+                  setGroupCompText(text);
                 }}
               />
+              {compError && (
+                <View style={{ marginBottom: 10 }}>
+                  <Text style={{ color: "red" }}>
+                    Không tìm thấy từ, sẽ được bỏ trống
+                  </Text>
+                </View>
+              )}
 
               {showDropDown && (
                 <Animated.View
                   style={{ ...styles.dropDown, opacity: fadeAnim }}
                 >
                   <FlatList
-                    data={groups}
+                    data={groupSuggestion}
                     horizontal={true}
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={({ item, index }) => (
-                      <TouchableOpacity style={styles.drowDownOption}>
-                        <Text>{item}</Text>
+                      <TouchableOpacity
+                        style={styles.drowDownOption}
+                        onPress={() => {
+                          setGroupComp(item);
+                          setGroupCompText(item.word);
+                          fadeOut();
+                        }}
+                      >
+                        <Text>{item.word}</Text>
                       </TouchableOpacity>
                     )}
                   />

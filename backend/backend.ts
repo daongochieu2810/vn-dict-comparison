@@ -23,9 +23,11 @@ const TaskEvent = firebase.storage.TaskEvent;
 const TaskState = firebase.storage.TaskState;
 
 const dictCollection = db.collection('dictionary');
+const userCollection = db.collection('users');
 
 export default {
     dictCollection,
+    userCollection,
     auth,
     storage,
     FieldValue,

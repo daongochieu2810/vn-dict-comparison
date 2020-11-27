@@ -1,7 +1,6 @@
 import React from "react";
 import { StyleSheet, View, Text, Dimensions, Image } from "react-native";
 import { SharedElement } from "react-navigation-shared-element";
-
 const { width, height } = Dimensions.get("window");
 
 export interface Word {
@@ -9,7 +8,7 @@ export interface Word {
   word: string;
   type: string;
   explanation: string;
-  groupComp: string;
+  groupComp: Word;
   image: string;
   audio: string;
   video: string;

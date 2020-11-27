@@ -174,7 +174,6 @@ function ComparisonScreen(props: ComparisonScreenProps) {
               <View
                 style={{
                   flexDirection: "row",
-                  backgroundColor: "#ffa099",
                   borderRadius: 10,
                   marginTop: 10,
                   marginBottom: index === wordList.length - 1 ? 300 : 0,
